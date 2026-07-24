@@ -10,6 +10,11 @@ namespace SG
         public float mouseX;
         public float mouseY;
 
+        public bool b_Input;
+
+        public bool rollFlag;
+        public bool isIntetacting;
+
         PlayerControls inputActions;
         CameraHandler cameraHandler;
 
@@ -54,6 +59,8 @@ namespace SG
 
                 inputActions.PlayerMovement.Camera.performed += i => cameraInput = i.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Camera.canceled += i => cameraInput = Vector2.zero;
+
+                inputActions.PlayerActions.Roll.performed += i => rollFlag = true;
             }
 
             inputActions.Enable();
@@ -77,6 +84,14 @@ namespace SG
             
             mouseX = cameraInput.x;
             mouseY = cameraInput.y;
+        }
+
+        // Раньше здесь опрашивался inputActions.PlayerActions.Roll.phase == InputActionPhase.Started,
+        // но для Button-действия без interactions фаза почти сразу переходит в Performed,
+        // поэтому Started ловился ненадёжно. Теперь rollFlag ставится через событие Roll.performed
+        // в OnEnable(). Метод оставлен на случай, если понадобится позже.
+        private void HandleRollInput(float delta)
+        {
         }
     }
 }

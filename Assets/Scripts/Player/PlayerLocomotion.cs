@@ -19,6 +19,12 @@ namespace SG
         [Header("Stats")]
         [SerializeField] float movementSpeed = 5;
         [SerializeField] float rotationSpeed = 10;
+        [SerializeField] float rollSpeed = 6;
+
+        // Используется в AnimatorHandler.OnAnimatorMove() как запасной вариант,
+        // когда у клипа анимации (например Roll) нет собственного смещения
+        // вперёд (Average Velocity == 0), и двигать персонажа приходится вручную.
+        public float RollSpeed { get { return rollSpeed; } }
 
         void Start()
         {
@@ -35,24 +41,8 @@ namespace SG
             float delta = Time.deltaTime;
 
             inputHandler.TickInput(delta);
-
-            moveDirection = cameraObject.forward * inputHandler.vertical;
-            moveDirection += cameraObject.right * inputHandler.horizontal;
-            moveDirection.Normalize();
-            moveDirection.y = 0;
-
-            float speed = movementSpeed;
-            moveDirection *= speed;
-
-            Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
-            rb.linearVelocity = projectedVelocity;
-            
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0);
-            
-            if (animatorHandler.canRotate)
-            {
-                HandleRotation(delta);
-            }
+            HandleMovement(delta);
+            HandleRollingAndSprinting(delta);
         }
 
         #region Movement
@@ -81,6 +71,60 @@ namespace SG
             myTransform.rotation = targetRotation;
         }
 
+        public void HandleMovement(float delta)
+        {
+            moveDirection = cameraObject.forward * inputHandler.vertical;
+            moveDirection += cameraObject.right * inputHandler.horizontal;
+            moveDirection.Normalize();
+            moveDirection.y = 0;
+
+            float speed = movementSpeed;
+            moveDirection *= speed;
+
+            Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
+            rb.linearVelocity = projectedVelocity;
+            
+            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0);
+            
+            if (animatorHandler.canRotate)
+            {
+                HandleRotation(delta);
+            }
+        }
+
+        public void HandleRollingAndSprinting(float delta)
+        {
+            if (animatorHandler.anim.GetBool("isInteracting"))
+                return;
+            
+            if (inputHandler.rollFlag)
+            {
+                // Сбрасываем флаг сразу тут, в месте использования. Раньше это делал
+                // PlayerManager.Update() безусловно каждый кадр — но порядок вызова
+                // Update() между разными скриптами Unity не гарантирует, и если
+                // PlayerManager успевал отработать раньше PlayerLocomotion, флаг
+                // обнулялся до того, как Rolling вообще успевал его увидеть.
+                inputHandler.rollFlag = false;
+
+                moveDirection = cameraObject.forward * inputHandler.vertical;
+                moveDirection += cameraObject.right * inputHandler.horizontal;
+
+                if (inputHandler.moveAmount > 0)
+                {
+                    animatorHandler.PlayeTargetAnimation("Rolling", true);
+                    moveDirection.y = 0;
+                    Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
+                    myTransform.rotation = rollRotation;
+                }
+                else
+                {
+                    // BackStep: анимации пока нет в проекте. Код сознательно оставлен
+                    // закомментированным (не удалён), чтобы включить его одной строкой,
+                    // как только анимация BackStep появится в Animator Controller.
+                    // animatorHandler.PlayeTargetAnimation("Backstep", true);
+                }
+            }
+        }
         #endregion
     }
 }
