@@ -732,6 +732,7 @@ GameObject:
   - component: {fileID: 470831687}
   - component: {fileID: 470831686}
   - component: {fileID: 470831685}
+  - component: {fileID: 470831689}
   m_Layer: 10
   m_Name: Player
   m_TagString: Untagged
@@ -773,6 +774,9 @@ MonoBehaviour:
   normalCamera: {fileID: 0}
   movementSpeed: 5
   rotationSpeed: 10
+  rollSpeed: 6
+  sprintSpeed: 7
+  isSprinting: 0
 --- !u!114 &470831686
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -790,6 +794,11 @@ MonoBehaviour:
   moveAmount: 0
   mouseX: 0
   mouseY: 0
+  b_Input: 0
+  rollFlag: 0
+  sprintFlag: 0
+  rollInputTimer: 0
+  isIntetacting: 0
 --- !u!54 &470831687
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -840,6 +849,18 @@ CapsuleCollider:
   m_Height: 1.8
   m_Direction: 1
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!114 &470831689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470831683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fa5e3a650b2148e08ab8897d996662e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerManager
 --- !u!1 &569168483 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 2f296433d6fce49b39e76baa0bf88dde, type: 3}
@@ -1592,7 +1613,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b991d568ab5343c6a20f5e86ad1b283, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.AnimatorHandler
-  anim: {fileID: 1738590764}
+  anim: {fileID: 0}
+  inputHandler: {fileID: 0}
+  playerLocomotion: {fileID: 0}
   canRotate: 1
 --- !u!95 &1738590764
 Animator:

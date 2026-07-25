@@ -17,11 +17,15 @@ public class PlayerManager : MonoBehaviour
     {
         inputHandler.isIntetacting = anim.GetBool("isInteracting");
 
-        // rollFlag больше не сбрасывается тут — это делает сам PlayerLocomotion
-        // в HandleRollingAndSprinting() сразу после того, как флаг использован.
-        // Обнуление флага "вслепую" каждый кадр здесь могло произойти раньше,
-        // чем PlayerLocomotion успевал его прочитать (порядок Update() между
-        // скриптами не гарантирован Unity), из-за чего Roll не срабатывал.
+        // Эти сбросы безопасны: rollFlag и sprintFlag теперь пересчитываются
+        // заново каждый кадр внутри InputHandler.TickInput() -> HandleRollInput()
+        // (по текущему состоянию кнопки), причём TickInput вызывается прямо в
+        // начале PlayerLocomotion.Update(), непосредственно перед тем, как эти
+        // флаги читаются. Поэтому не важно, в каком порядке Unity вызовет Update()
+        // этого скрипта относительно PlayerLocomotion — свежее значение всё
+        // равно будет выставлено до чтения.
+        inputHandler.rollFlag = false;
+        inputHandler.sprintFlag = false;
     }
 }
 }

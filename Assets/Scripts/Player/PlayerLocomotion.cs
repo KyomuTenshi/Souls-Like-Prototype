@@ -20,6 +20,9 @@ namespace SG
         [SerializeField] float movementSpeed = 5;
         [SerializeField] float rotationSpeed = 10;
         [SerializeField] float rollSpeed = 6;
+        [SerializeField] float sprintSpeed = 7;
+
+        public bool isSprinting;
 
         // Используется в AnimatorHandler.OnAnimatorMove() как запасной вариант,
         // когда у клипа анимации (например Roll) нет собственного смещения
@@ -40,6 +43,7 @@ namespace SG
         {
             float delta = Time.deltaTime;
 
+            isSprinting = inputHandler.b_Input;
             inputHandler.TickInput(delta);
             HandleMovement(delta);
             HandleRollingAndSprinting(delta);
@@ -73,18 +77,30 @@ namespace SG
 
         public void HandleMovement(float delta)
         {
+            if (inputHandler.rollFlag)
+                return;
+            
             moveDirection = cameraObject.forward * inputHandler.vertical;
             moveDirection += cameraObject.right * inputHandler.horizontal;
             moveDirection.Normalize();
             moveDirection.y = 0;
 
             float speed = movementSpeed;
-            moveDirection *= speed;
+
+            if (inputHandler.sprintFlag)
+            {
+                speed = sprintSpeed;
+                isSprinting = true;
+                moveDirection *= speed;
+            } else
+            {
+                moveDirection *= speed;
+            }
 
             Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
             rb.linearVelocity = projectedVelocity;
             
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0);
+            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, isSprinting);
             
             if (animatorHandler.canRotate)
             {

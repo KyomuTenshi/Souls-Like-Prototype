@@ -30,7 +30,7 @@ namespace SG {
             anim.applyRootMotion = false;
         }
 
-        public void UpdateAnimatorValues(float verticalMovement, float horizontalMovement)
+        public void UpdateAnimatorValues(float verticalMovement, float horizontalMovement, bool isSprinting)
         {
             #region Vertical
             float v = 0;
@@ -76,6 +76,12 @@ namespace SG {
 
             #endregion
 
+            if (isSprinting)
+            {
+                v = 2;
+                h = horizontalMovement;
+            }
+            
             anim.SetFloat(vertical, v, 0.1f, Time.deltaTime);
             anim.SetFloat(horizontal, h, 0.1f, Time.deltaTime);
         }
@@ -102,6 +108,8 @@ namespace SG {
             if (inputHandler.isIntetacting == false)
                 return;
 
+            AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
+
             float delta = Time.deltaTime;
             playerLocomotion.GetComponent<Rigidbody>().linearDamping = 0;
 
@@ -110,21 +118,47 @@ namespace SG {
 
             Vector3 velocity;
 
-            // У клипа Roll (Universal Animation Library) Average Velocity = (0,0,0) —
-            // root motion curves есть, но реального смещения вперёд не дают.
-            // Поэтому если deltaPosition от аниматора практически нулевой,
-            // двигаем персонажа вручную с фиксированной скоростью вперёд по
-            // направлению, куда он уже повёрнут (оно выставляется в
-            // HandleRollingAndSprinting перед стартом переката).
-            // Если для другой анимации (например атаки) root motion реально
-            // есть — используем его как и раньше, ничего не ломая.
-            if (deltaPosition.sqrMagnitude > 0.0001f)
+            if (stateInfo.normalizedTime >= 1f)
             {
+                // Клип переката уже фактически доиграл (в том числе во время
+                // 0.2с CrossFade-перехода в Locomotion), а isInteracting может
+                // сброситься на кадр-другой позже. Раньше в этом окне Rigidbody
+                // продолжал получать скорость, и персонажа "доносило" по инерции
+                // после конца анимации — поэтому тут скорость жёстко глушим,
+                // не дожидаясь флага.
+                velocity = Vector3.zero;
+            }
+            else if (deltaPosition.sqrMagnitude > 0.0001f)
+            {
+                // Если для какой-то другой анимации (например атаки) root motion
+                // реально есть — используем его как и раньше.
                 velocity = deltaPosition / delta;
             }
             else
             {
-                velocity = playerLocomotion.myTransform.forward * playerLocomotion.RollSpeed;
+                // У клипа Roll (Universal Animation Library) Average Velocity =
+                // (0,0,0) — root motion curves есть, но реального смещения вперёд
+                // не дают. Двигаем персонажа вручную.
+                // Раньше скорость плавно менялась по синусоиде (0 -> максимум в
+                // середине -> 0), но там RollSpeed достигался лишь на мгновение,
+                // из-за чего суммарная дистанция переката получалась заметно
+                // меньше, чем задано в RollSpeed, и рывок ощущался слабым.
+                // Теперь — "трапеция": быстрый разгон, RollSpeed держится почти
+                // весь перекат, короткое торможение в конце. Резкого рывка
+                // по-прежнему нет, но пройденное расстояние заметно больше.
+                const float rampFraction = 0.15f; // доля длительности на разгон/торможение
+                float normalizedTime = Mathf.Clamp01(stateInfo.normalizedTime);
+                float speedMultiplier;
+
+                if (normalizedTime < rampFraction)
+                    speedMultiplier = normalizedTime / rampFraction;
+                else if (normalizedTime > 1f - rampFraction)
+                    speedMultiplier = (1f - normalizedTime) / rampFraction;
+                else
+                    speedMultiplier = 1f;
+
+                float easedSpeed = playerLocomotion.RollSpeed * speedMultiplier;
+                velocity = playerLocomotion.myTransform.forward * easedSpeed;
             }
 
             playerLocomotion.GetComponent<Rigidbody>().linearVelocity = velocity;
