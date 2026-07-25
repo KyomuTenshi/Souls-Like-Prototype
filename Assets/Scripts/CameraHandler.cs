@@ -16,8 +16,8 @@ namespace SG
 
         [Header("Camera Speeds")]
         public float lookSpeed = 100f;
-        public float followSpeed = 0.1f;
         public float pivotSpeed = 100f;
+        public float followSpeed = 0.1f;
 
         private float targetPosition;
         private float defaultPosition;

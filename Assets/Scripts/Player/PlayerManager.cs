@@ -1,31 +1,81 @@
 using UnityEngine;
 
 namespace SG {
-public class PlayerManager : MonoBehaviour
-{
-
-    InputHandler inputHandler;
-    Animator anim;
-
-    void Start()
+    public class PlayerManager : MonoBehaviour
     {
-        inputHandler = GetComponent<InputHandler>();
-        anim = GetComponentInChildren<Animator>();
-    }
+        InputHandler inputHandler;
+        Animator anim;
+        CameraHandler cameraHandler;
+        PlayerLocomotion playerLocomotion;
 
-    void Update()
-    {
-        inputHandler.isIntetacting = anim.GetBool("isInteracting");
+        public bool isIntetacting;
 
-        // Эти сбросы безопасны: rollFlag и sprintFlag теперь пересчитываются
-        // заново каждый кадр внутри InputHandler.TickInput() -> HandleRollInput()
-        // (по текущему состоянию кнопки), причём TickInput вызывается прямо в
-        // начале PlayerLocomotion.Update(), непосредственно перед тем, как эти
-        // флаги читаются. Поэтому не важно, в каком порядке Unity вызовет Update()
-        // этого скрипта относительно PlayerLocomotion — свежее значение всё
-        // равно будет выставлено до чтения.
-        inputHandler.rollFlag = false;
-        inputHandler.sprintFlag = false;
+        [Header("Player Flags")]
+        public bool isSprinting;
+
+        private void Awake()
+        {
+            // Блокируем курсор в центре экрана для удобного управления мыгой
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+
+        void Start()
+        {
+            // CameraHandler.singleton переносим сюда, в Start(), а не в Awake().
+            // Unity не гарантирует порядок вызова Awake() между разными объектами:
+            // если Awake() этого скрипта отрабатывал раньше, чем Awake() самого
+            // CameraHandler (где singleton = this), то cameraHandler навсегда
+            // оставался null, и блок с FollowTarget/HandleCameraRotation в
+            // LateUpdate() молча пропускался — камера переставала следовать за
+            // игроком, без единой ошибки в консоли.
+            // Unity гарантирует другое: ВСЕ Awake() всех активных объектов сцены
+            // отрабатывают раньше, чем ЛЮБОЙ Start(). Поэтому к моменту этого
+            // Start() CameraHandler.Awake() уже железно выполнился, и singleton
+            // точно заполнен.
+            cameraHandler = CameraHandler.singleton;
+
+            inputHandler = GetComponent<InputHandler>();
+            anim = GetComponentInChildren<Animator>();
+            playerLocomotion = GetComponent<PlayerLocomotion>();
+        }
+
+        void Update()
+        {
+            float delta = Time.deltaTime;
+
+            isIntetacting = anim.GetBool("isInteracting");
+
+            // Эти сбросы безопасны: rollFlag и sprintFlag теперь пересчитываются
+            // заново каждый кадр внутри InputHandler.TickInput() -> HandleRollInput()
+            // (по текущему состоянию кнопки), причём TickInput вызывается прямо в
+            // начале PlayerLocomotion.Update(), непосредственно перед тем, как эти
+            // флаги читаются. Поэтому не важно, в каком порядке Unity вызовет Update()
+            // этого скрипта относительно PlayerLocomotion — свежее значение всё
+            // равно будет выставлено до чтения.
+
+            inputHandler.TickInput(delta);
+            playerLocomotion.HandleMovement(delta);
+            playerLocomotion.HandleRollingAndSprinting(delta);
+        }
+
+        private void LateUpdate()
+        {
+            float delta = Time.deltaTime;
+
+            // Камера обрабатывается именно в LateUpdate (после того как игрок уже
+            // переместился и повернулся в Update), чтобы избежать дерганий за
+            // игроком.
+            if (cameraHandler != null)
+            {
+                cameraHandler.FollowTarget(delta);
+                cameraHandler.HandleCameraRotation(delta, inputHandler.mouseX, inputHandler.mouseY);
+            }
+
+            inputHandler.rollFlag = false;
+            inputHandler.sprintFlag = false;
+            isSprinting = inputHandler.b_Input;
+        }
     }
-}
 }

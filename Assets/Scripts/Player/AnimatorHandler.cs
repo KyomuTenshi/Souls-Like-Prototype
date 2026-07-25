@@ -3,15 +3,26 @@ using UnityEngine;
 namespace SG {
     public class AnimatorHandler : MonoBehaviour
     {
+        PlayerManager playerManager;
         public Animator anim;
-        public InputHandler inputHandler;
-        public PlayerLocomotion playerLocomotion;
+        InputHandler inputHandler;
+        PlayerLocomotion playerLocomotion;
         int vertical;
         int horizontal;
         public bool canRotate;
 
         public void Initialize()
         {
+            // PlayerManager, как и InputHandler/PlayerLocomotion, находится на
+            // родительском (корневом) объекте игрока, а не на том же объекте, что
+            // и AnimatorHandler — AnimatorHandler висит на дочерней модели (см.
+            // PlayerLocomotion.Start(), где он ищется через GetComponentInChildren).
+            // GetComponent<PlayerManager>() искал бы компонент на этом же дочернем
+            // объекте и всегда возвращал бы null, из-за чего OnAnimatorMove()
+            // падал бы с NullReferenceException при первом же обращении к
+            // playerManager.isIntetacting (например, на первом же Roll).
+            // Используем GetComponentInParent, как и для остальных компонентов ниже.
+            playerManager = GetComponentInParent<PlayerManager>();
             anim = GetComponent<Animator>();
             inputHandler = GetComponentInParent<InputHandler>();
             playerLocomotion = GetComponentInParent<PlayerLocomotion>();
@@ -65,10 +76,19 @@ namespace SG {
                 h = 1;
             } else if (horizontalMovement < 0 && horizontalMovement > -0.55f)
             {
-                h = 0.5f;
+                // Раньше здесь стояло h = 0.5f (скопировано с положительной ветки) —
+                // при отрицательном horizontalMovement (движение влево) получалось
+                // положительное значение Horizontal, то есть блэнд-дерево анимации
+                // получало бы сигнал "вправо" вместо "влево". Сейчас параметр
+                // horizontalMovement всегда приходит равным 0 (см. вызов
+                // UpdateAnimatorValues в PlayerLocomotion.HandleMovement), поэтому
+                // на данном этапе бага не видно на экране — но как только в
+                // туториале появится страйф влево/вправо и сюда начнут передавать
+                // реальное значение, баг сразу проявится. Исправляю сейчас.
+                h = -0.5f;
             } else if (horizontalMovement < -0.55f)
             {
-                h = 1;
+                h = -1;
             } else
             {
                 h = 0;
@@ -105,13 +125,16 @@ namespace SG {
 
         private void OnAnimatorMove()
         {
-            if (inputHandler.isIntetacting == false)
+            if (playerManager.isIntetacting == false)
                 return;
 
             AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
 
             float delta = Time.deltaTime;
-            playerLocomotion.GetComponent<Rigidbody>().linearDamping = 0;
+            // Кэшируем Rigidbody один раз вместо трёх отдельных GetComponent<Rigidbody>()
+            // за кадр — playerLocomotion.rb уже публично доступен и заполнен в Start().
+            Rigidbody rb = playerLocomotion.rb;
+            rb.linearDamping = 0;
 
             Vector3 deltaPosition = anim.deltaPosition;
             deltaPosition.y = 0;
@@ -161,7 +184,7 @@ namespace SG {
                 velocity = playerLocomotion.myTransform.forward * easedSpeed;
             }
 
-            playerLocomotion.GetComponent<Rigidbody>().linearVelocity = velocity;
+            rb.linearVelocity = velocity;
         }
     }
 }

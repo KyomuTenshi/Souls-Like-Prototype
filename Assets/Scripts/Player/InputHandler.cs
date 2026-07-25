@@ -18,19 +18,9 @@ namespace SG
         public bool isIntetacting;
 
         PlayerControls inputActions;
-        CameraHandler cameraHandler;
 
         Vector2 movementInput;
         Vector2 cameraInput;
-
-        private void Start()
-        {
-            cameraHandler = CameraHandler.singleton;
-            
-            // Блокируем курсор в центре экрана для удобного управления мыгой
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
 
         private void Update()
         {
@@ -38,29 +28,20 @@ namespace SG
             TickInput(delta);
         }
 
-        private void LateUpdate()
-        {
-            float delta = Time.deltaTime;
-
-            // Вся камера обрабатывается в LateUpdate, чтобы избежать дерганий за игроком
-            if (cameraHandler != null)
-            {
-                cameraHandler.FollowTarget(delta);
-                cameraHandler.HandleCameraRotation(delta, mouseX, mouseY);
-            }
-        }
-
         public void OnEnable()
         {
             if (inputActions == null)
             {
                 inputActions = new PlayerControls();
-                
-                inputActions.PlayerMovement.Movement.performed += inputActions => movementInput = inputActions.ReadValue<Vector2>();
-                inputActions.PlayerMovement.Movement.canceled += inputActions => movementInput = Vector2.zero;
 
-                inputActions.PlayerMovement.Camera.performed += i => cameraInput = i.ReadValue<Vector2>();
-                inputActions.PlayerMovement.Camera.canceled += i => cameraInput = Vector2.zero;
+                // Параметр лямбды переименован из "inputActions" в "ctx": он затенял
+                // одноимённое поле класса, что путало при чтении (и рискованно при
+                // будущих правках — легко случайно обратиться не к тому "inputActions").
+                inputActions.PlayerMovement.Movement.performed += ctx => movementInput = ctx.ReadValue<Vector2>();
+                inputActions.PlayerMovement.Movement.canceled += ctx => movementInput = Vector2.zero;
+
+                inputActions.PlayerMovement.Camera.performed += ctx => cameraInput = ctx.ReadValue<Vector2>();
+                inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
                 // rollFlag больше не выставляется тут по событию нажатия — иначе
                 // Roll срабатывал бы мгновенно при любом нажатии Shift, включая

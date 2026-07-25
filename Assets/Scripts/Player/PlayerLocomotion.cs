@@ -4,6 +4,7 @@ namespace SG
 {
     public class PlayerLocomotion : MonoBehaviour
     {
+        PlayerManager playerManager;
         Transform cameraObject;
         InputHandler inputHandler;
         Vector3 moveDirection;
@@ -16,13 +17,11 @@ namespace SG
         public Rigidbody rb; 
         public GameObject normalCamera;
 
-        [Header("Stats")]
+        [Header("Movement Stats")]
         [SerializeField] float movementSpeed = 5;
         [SerializeField] float rotationSpeed = 10;
         [SerializeField] float rollSpeed = 6;
         [SerializeField] float sprintSpeed = 7;
-
-        public bool isSprinting;
 
         // Используется в AnimatorHandler.OnAnimatorMove() как запасной вариант,
         // когда у клипа анимации (например Roll) нет собственного смещения
@@ -31,22 +30,13 @@ namespace SG
 
         void Start()
         {
+            playerManager = GetComponent<PlayerManager>();
             rb = GetComponent<Rigidbody>();
             inputHandler = GetComponent<InputHandler>();
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
             cameraObject = Camera.main.transform;
             myTransform = transform;
             animatorHandler.Initialize();
-        }
-
-        public void Update()
-        {
-            float delta = Time.deltaTime;
-
-            isSprinting = inputHandler.b_Input;
-            inputHandler.TickInput(delta);
-            HandleMovement(delta);
-            HandleRollingAndSprinting(delta);
         }
 
         #region Movement
@@ -56,7 +46,6 @@ namespace SG
         private void HandleRotation(float delta)
         {
             Vector3 targetDir = Vector3.zero;
-            float moveOverride = inputHandler.moveAmount;
 
             targetDir = cameraObject.forward * inputHandler.vertical;
             targetDir += cameraObject.right * inputHandler.horizontal;
@@ -90,7 +79,7 @@ namespace SG
             if (inputHandler.sprintFlag)
             {
                 speed = sprintSpeed;
-                isSprinting = true;
+                playerManager.isSprinting = true;
                 moveDirection *= speed;
             } else
             {
@@ -100,7 +89,7 @@ namespace SG
             Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
             rb.linearVelocity = projectedVelocity;
             
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, isSprinting);
+            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, playerManager.isSprinting);
             
             if (animatorHandler.canRotate)
             {
