@@ -23,10 +23,15 @@ namespace SG
         private float defaultPosition;
         private float lookAngle;
         private float pivotAngle;
-        
+
         [Header("Camera Limits")]
-        private float minimumPivot = -35f;
-        private float maximumPivot = 35f;
+        // БЫЛО: minimumPivot/maximumPivot были private БЕЗ [SerializeField].
+        // Unity сериализует и показывает в инспекторе только public поля или
+        // private с атрибутом [SerializeField]. Без него [Header] выше рисовал
+        // заголовок, а сами поля в инспекторе не появлялись и их нельзя было
+        // подкрутить не залезая в код. Добавлен [SerializeField].
+        [SerializeField] private float minimumPivot = -35f;
+        [SerializeField] private float maximumPivot = 35f;
 
         [Header("Collision Settings")]
         public float cameraSphereRadius = 0.2f;
@@ -44,6 +49,9 @@ namespace SG
 
         public void FollowTarget(float delta)
         {
+            if (targetTransform == null)
+                return;
+
             Vector3 targetPos = Vector3.SmoothDamp(
                 myTransform.position, 
                 targetTransform.position, 
@@ -57,7 +65,6 @@ namespace SG
 
         public void HandleCameraRotation(float delta, float mouseXInput, float mouseYInput)
         {
-            // Безопасное умножение на delta для стабильности при любом FPS
             lookAngle += mouseXInput * lookSpeed * delta;
             pivotAngle -= mouseYInput * pivotSpeed * delta;
 
@@ -79,7 +86,7 @@ namespace SG
         {
             targetPosition = defaultPosition;
             RaycastHit hit;
-            
+
             // Вектор строго от Pivot к Камере
             Vector3 direction = cameraTransform.position - cameraPivotTransform.position;
             direction.Normalize();
@@ -96,7 +103,12 @@ namespace SG
             }
 
             cameraTransformPosition = cameraTransform.localPosition;
-            cameraTransformPosition.z = Mathf.Lerp(cameraTransform.localPosition.z, targetPosition, delta / 0.2f);
+            // БЫЛО: delta / 0.2f — при просадках FPS (большой delta) множитель
+            // мог превысить 1 и Lerp давал резкий "перескок" камеры сквозь стену
+            // вместо плавного подтягивания. Clamp01 убирает этот рывок, оставляя
+            // ту же скорость сглаживания при нормальном FPS.
+            float t = Mathf.Clamp01(delta / 0.2f);
+            cameraTransformPosition.z = Mathf.Lerp(cameraTransform.localPosition.z, targetPosition, t);
             cameraTransform.localPosition = cameraTransformPosition;
         }
     }

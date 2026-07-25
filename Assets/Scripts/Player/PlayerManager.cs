@@ -12,14 +12,15 @@ namespace SG {
 
         [Header("Player Flags")]
         public bool isSprinting;
+        public bool isInAir;
+        public bool isGrounded;
 
         private void Awake()
         {
-            // Блокируем курсор в центре экрана для удобного управления мыгой
+            // Блокируем курсор в центре экрана для удобного управления мышью
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
-
 
         void Start()
         {
@@ -47,17 +48,16 @@ namespace SG {
 
             isIntetacting = anim.GetBool("isInteracting");
 
-            // Эти сбросы безопасны: rollFlag и sprintFlag теперь пересчитываются
-            // заново каждый кадр внутри InputHandler.TickInput() -> HandleRollInput()
-            // (по текущему состоянию кнопки), причём TickInput вызывается прямо в
-            // начале PlayerLocomotion.Update(), непосредственно перед тем, как эти
-            // флаги читаются. Поэтому не важно, в каком порядке Unity вызовет Update()
-            // этого скрипта относительно PlayerLocomotion — свежее значение всё
-            // равно будет выставлено до чтения.
-
+            // rollFlag и sprintFlag пересчитываются заново каждый кадр внутри
+            // InputHandler.TickInput() -> HandleRollInput() (по текущему состоянию
+            // кнопки), причём TickInput вызывается прямо здесь, перед тем как эти
+            // флаги читаются ниже. Поэтому не важно, в каком порядке Unity вызовет
+            // Update() этого скрипта относительно других — свежее значение всё
+            // равно выставлено до чтения.
             inputHandler.TickInput(delta);
             playerLocomotion.HandleMovement(delta);
             playerLocomotion.HandleRollingAndSprinting(delta);
+            playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
         }
 
         private void LateUpdate()
@@ -76,6 +76,11 @@ namespace SG {
             inputHandler.rollFlag = false;
             inputHandler.sprintFlag = false;
             isSprinting = inputHandler.b_Input;
+
+            if (isInAir)
+            {
+                playerLocomotion.inAirTimer = playerLocomotion.inAirTimer + Time.deltaTime;
+            }
         }
     }
 }

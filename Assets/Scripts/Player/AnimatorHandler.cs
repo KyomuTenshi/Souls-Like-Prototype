@@ -11,17 +11,16 @@ namespace SG {
         int horizontal;
         public bool canRotate;
 
+        // Момент normalizedTime (0..1), при котором для НЕ-Roll интеракций
+        // (Falling, Land и т.п.) управление возвращается игроку. По умолчанию
+        // 1 = ждать полный клип, как было. Если "Land" ощущается слишком долгим —
+        // можно поставить, например, 0.75, чтобы отдать управление немного раньше
+        // конца анимации посадки, не трогая сам клип и не меняя код.
+        [Range(0.1f, 1f)]
+        public float interactionExitNormalizedTime = 1f;
+
         public void Initialize()
         {
-            // PlayerManager, как и InputHandler/PlayerLocomotion, находится на
-            // родительском (корневом) объекте игрока, а не на том же объекте, что
-            // и AnimatorHandler — AnimatorHandler висит на дочерней модели (см.
-            // PlayerLocomotion.Start(), где он ищется через GetComponentInChildren).
-            // GetComponent<PlayerManager>() искал бы компонент на этом же дочернем
-            // объекте и всегда возвращал бы null, из-за чего OnAnimatorMove()
-            // падал бы с NullReferenceException при первом же обращении к
-            // playerManager.isIntetacting (например, на первом же Roll).
-            // Используем GetComponentInParent, как и для остальных компонентов ниже.
             playerManager = GetComponentInParent<PlayerManager>();
             anim = GetComponent<Animator>();
             inputHandler = GetComponentInParent<InputHandler>();
@@ -29,15 +28,6 @@ namespace SG {
             vertical = Animator.StringToHash("Vertical");
             horizontal = Animator.StringToHash("Horizontal");
 
-            // Апply Root Motion по умолчанию включён Unity-ом на новом Animator-компоненте.
-            // Пока он включён, а OnAnimatorMove() ничего не делает во время обычного
-            // перемещения (isInteracting == false), аниматор всё равно считается
-            // "ответственным" за Rigidbody на этот кадр, и rb.linearVelocity,
-            // выставленный в PlayerLocomotion.HandleMovement, эффективно перебивается —
-            // отсюда "анимации Walk/Run идут, а персонаж стоит на месте".
-            // Root motion нам нужен только во время действий (Rolling и т.п.),
-            // это уже включается точечно в PlayeTargetAnimation(). Поэтому по
-            // умолчанию выключаем его здесь.
             anim.applyRootMotion = false;
         }
 
@@ -76,15 +66,6 @@ namespace SG {
                 h = 1;
             } else if (horizontalMovement < 0 && horizontalMovement > -0.55f)
             {
-                // Раньше здесь стояло h = 0.5f (скопировано с положительной ветки) —
-                // при отрицательном horizontalMovement (движение влево) получалось
-                // положительное значение Horizontal, то есть блэнд-дерево анимации
-                // получало бы сигнал "вправо" вместо "влево". Сейчас параметр
-                // horizontalMovement всегда приходит равным 0 (см. вызов
-                // UpdateAnimatorValues в PlayerLocomotion.HandleMovement), поэтому
-                // на данном этапе бага не видно на экране — но как только в
-                // туториале появится страйф влево/вправо и сюда начнут передавать
-                // реальное значение, баг сразу проявится. Исправляю сейчас.
                 h = -0.5f;
             } else if (horizontalMovement < -0.55f)
             {
@@ -131,45 +112,59 @@ namespace SG {
             AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
 
             float delta = Time.deltaTime;
-            // Кэшируем Rigidbody один раз вместо трёх отдельных GetComponent<Rigidbody>()
-            // за кадр — playerLocomotion.rb уже публично доступен и заполнен в Start().
             Rigidbody rb = playerLocomotion.rb;
             rb.linearDamping = 0;
+
+            // ВАЖНО: раньше вся логика ниже применялась к ЛЮБОЙ анимации с
+            // isInteracting == true (включая Falling и Land), а не только к Roll.
+            // У Falling/Land нет собственного root motion (deltaPosition ~ 0),
+            // и код проваливался в ветку, написанную специально под Roll, толкая
+            // персонажа вперёд на RollSpeed каждый кадр — отсюда и рывок вперёд
+            // в падении, и при приземлении. Явно проверяем, что это именно
+            // состояние "Rolling" (имя состояния в Animator Controller должно
+            // совпадать со строкой, переданной в PlayeTargetAnimation("Rolling", true)).
+            bool isRollingState = stateInfo.IsName("Rolling");
+
+            // Для Roll порог всегда 1 (ждём Animation Event/конец клипа как раньше).
+            // Для остальных интеракций (Falling, Land) используем настраиваемый
+            // interactionExitNormalizedTime, чтобы не ждать управлением полный клип,
+            // если он длинный.
+            float exitThreshold = isRollingState ? 1f : interactionExitNormalizedTime;
+
+            if (stateInfo.normalizedTime >= exitThreshold)
+            {
+                // Клип доиграл до конца (или до настроенной точки возврата управления).
+                rb.linearVelocity = Vector3.zero;
+
+                if (!isRollingState)
+                {
+                    // Это Falling/Land (или любая другая не-Roll "интеракция") —
+                    // явно возвращаем управление игроку и выключаем root motion,
+                    // не дожидаясь Animation Event, которого может не быть в
+                    // контроллере. Без этого isInteracting навсегда оставался
+                    // true, HandleMovement() выходил на первой строке и
+                    // управление к игроку не возвращалось.
+                    anim.applyRootMotion = false;
+                    anim.SetBool("isInteracting", false);
+                }
+
+                return;
+            }
 
             Vector3 deltaPosition = anim.deltaPosition;
             deltaPosition.y = 0;
 
             Vector3 velocity;
 
-            if (stateInfo.normalizedTime >= 1f)
+            if (deltaPosition.sqrMagnitude > 0.0001f)
             {
-                // Клип переката уже фактически доиграл (в том числе во время
-                // 0.2с CrossFade-перехода в Locomotion), а isInteracting может
-                // сброситься на кадр-другой позже. Раньше в этом окне Rigidbody
-                // продолжал получать скорость, и персонажа "доносило" по инерции
-                // после конца анимации — поэтому тут скорость жёстко глушим,
-                // не дожидаясь флага.
-                velocity = Vector3.zero;
-            }
-            else if (deltaPosition.sqrMagnitude > 0.0001f)
-            {
-                // Если для какой-то другой анимации (например атаки) root motion
-                // реально есть — используем его как и раньше.
+                // Реальный root motion есть (например, у атак) — используем его.
                 velocity = deltaPosition / delta;
             }
-            else
+            else if (isRollingState)
             {
-                // У клипа Roll (Universal Animation Library) Average Velocity =
-                // (0,0,0) — root motion curves есть, но реального смещения вперёд
-                // не дают. Двигаем персонажа вручную.
-                // Раньше скорость плавно менялась по синусоиде (0 -> максимум в
-                // середине -> 0), но там RollSpeed достигался лишь на мгновение,
-                // из-за чего суммарная дистанция переката получалась заметно
-                // меньше, чем задано в RollSpeed, и рывок ощущался слабым.
-                // Теперь — "трапеция": быстрый разгон, RollSpeed держится почти
-                // весь перекат, короткое торможение в конце. Резкого рывка
-                // по-прежнему нет, но пройденное расстояние заметно больше.
-                const float rampFraction = 0.15f; // доля длительности на разгон/торможение
+                // Специфичный для Roll разгон/торможение (см. предыдущий комментарий).
+                const float rampFraction = 0.15f;
                 float normalizedTime = Mathf.Clamp01(stateInfo.normalizedTime);
                 float speedMultiplier;
 
@@ -182,6 +177,13 @@ namespace SG {
 
                 float easedSpeed = playerLocomotion.RollSpeed * speedMultiplier;
                 velocity = playerLocomotion.myTransform.forward * easedSpeed;
+            }
+            else
+            {
+                // Любая другая "интеракция" без собственного root motion
+                // (Falling, Land и т.п.) — НЕ толкаем персонажа вперёд.
+                // Физику падения уже полностью считает PlayerLocomotion.HandleFalling.
+                velocity = Vector3.zero;
             }
 
             rb.linearVelocity = velocity;

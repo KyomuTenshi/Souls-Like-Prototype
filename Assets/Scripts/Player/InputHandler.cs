@@ -17,16 +17,26 @@ namespace SG
         public float rollInputTimer;
         public bool isIntetacting;
 
+        // Порог удержания, после которого поведение переключается с "Roll" на
+        // "Sprint". Вынесен в поле вместо литерала "0.5f", разбросанного по коду —
+        // так его видно и можно подкрутить в одном месте (в будущем — из инспектора).
+        [SerializeField] private float rollInputThreshold = 0.5f;
+
         PlayerControls inputActions;
 
         Vector2 movementInput;
         Vector2 cameraInput;
 
-        private void Update()
-        {
-            float delta = Time.deltaTime;
-            TickInput(delta);
-        }
+        // БЫЛО: тут был собственный Update(), который тоже вызывал TickInput(delta).
+        // А PlayerManager.Update() ОТДЕЛЬНО вызывает inputHandler.TickInput(delta)
+        // ещё раз. В итоге TickInput() (а с ним и HandleRollInput()) отрабатывал
+        // ДВАЖДЫ за один и тот же кадр. rollInputTimer при удержании кнопки
+        // накручивался в два раза быстрее реального времени — порог в 0.5с
+        // фактически превращался в ~0.25с. Обычное короткое нажатие переставало
+        // укладываться в порог, засчитывалось как "долгое удержание", и вместо
+        // Roll срабатывал Sprint. TickInput теперь вызывается ровно один раз за
+        // кадр — из PlayerManager.Update(), который и остаётся единой точкой
+        // тика для игрока.
 
         public void OnEnable()
         {
@@ -34,21 +44,17 @@ namespace SG
             {
                 inputActions = new PlayerControls();
 
-                // Параметр лямбды переименован из "inputActions" в "ctx": он затенял
-                // одноимённое поле класса, что путало при чтении (и рискованно при
-                // будущих правках — легко случайно обратиться не к тому "inputActions").
                 inputActions.PlayerMovement.Movement.performed += ctx => movementInput = ctx.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Movement.canceled += ctx => movementInput = Vector2.zero;
 
                 inputActions.PlayerMovement.Camera.performed += ctx => cameraInput = ctx.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
-                // rollFlag больше не выставляется тут по событию нажатия — иначе
+                // rollFlag намеренно НЕ выставляется тут по событию нажатия — иначе
                 // Roll срабатывал бы мгновенно при любом нажатии Shift, включая
-                // начало удержания для спринта, и персонаж всегда перекатывался
-                // бы вместо того чтобы побежать. Теперь rollFlag/sprintFlag
-                // считает HandleRollInput() по длительности удержания кнопки
-                // (короткое нажатие -> Roll, удержание -> Sprint), см. TickInput().
+                // начало удержания для спринта. rollFlag/sprintFlag считает
+                // HandleRollInput() по длительности удержания (короткое нажатие ->
+                // Roll, удержание -> Sprint), см. TickInput().
             }
 
             inputActions.Enable();
@@ -70,17 +76,15 @@ namespace SG
             horizontal = movementInput.x;
             vertical = movementInput.y;
             moveAmount = Mathf.Clamp01(Mathf.Abs(horizontal) + Mathf.Abs(vertical));
-            
+
             mouseX = cameraInput.x;
             mouseY = cameraInput.y;
         }
 
-        // Короткое нажатие Shift -> Roll, удержание дольше 0.5с -> Sprint.
-        // Раньше тут проверялась inputActions.PlayerActions.Roll.phase ==
-        // InputActionPhase.Started, но у Button-действия без interactions фаза
-        // почти сразу переходит в Performed, поэтому Started не годится для
-        // отслеживания "кнопка всё ещё удерживается" каждый кадр. IsPressed()
-        // как раз для этого и предназначен — надёжно отражает текущее состояние.
+        // Короткое нажатие Shift -> Roll, удержание дольше rollInputThreshold ->
+        // Sprint. IsPressed() надёжно отражает текущее состояние кнопки каждый
+        // кадр (в отличие от phase == Started, который у Button-действия без
+        // interactions почти сразу переходит в Performed).
         private void HandleRollInput(float delta)
         {
             b_Input = inputActions.PlayerActions.Roll.IsPressed();
@@ -89,9 +93,10 @@ namespace SG
             {
                 rollInputTimer += delta;
                 sprintFlag = true;
-            } else
+            }
+            else
             {
-                if(rollInputTimer > 0 && rollInputTimer < 0.5f)
+                if (rollInputTimer > 0 && rollInputTimer < rollInputThreshold)
                 {
                     sprintFlag = false;
                     rollFlag = true;
