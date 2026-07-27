@@ -11,32 +11,28 @@ namespace SG
         public float mouseY;
 
         public bool b_Input;
+        public bool rb_Input;
+        public bool rt_Input;
 
         public bool rollFlag;
         public bool sprintFlag;
         public float rollInputTimer;
         public bool isIntetacting;
 
-        // Порог удержания, после которого поведение переключается с "Roll" на
-        // "Sprint". Вынесен в поле вместо литерала "0.5f", разбросанного по коду —
-        // так его видно и можно подкрутить в одном месте (в будущем — из инспектора).
         [SerializeField] private float rollInputThreshold = 0.5f;
 
         PlayerControls inputActions;
+        PlayerAttacker playerAttacker;
+        PlayerInventory playerInventory;
 
         Vector2 movementInput;
         Vector2 cameraInput;
 
-        // БЫЛО: тут был собственный Update(), который тоже вызывал TickInput(delta).
-        // А PlayerManager.Update() ОТДЕЛЬНО вызывает inputHandler.TickInput(delta)
-        // ещё раз. В итоге TickInput() (а с ним и HandleRollInput()) отрабатывал
-        // ДВАЖДЫ за один и тот же кадр. rollInputTimer при удержании кнопки
-        // накручивался в два раза быстрее реального времени — порог в 0.5с
-        // фактически превращался в ~0.25с. Обычное короткое нажатие переставало
-        // укладываться в порог, засчитывалось как "долгое удержание", и вместо
-        // Roll срабатывал Sprint. TickInput теперь вызывается ровно один раз за
-        // кадр — из PlayerManager.Update(), который и остаётся единой точкой
-        // тика для игрока.
+        private void Awake()
+        {
+            playerAttacker = GetComponent<PlayerAttacker>();
+            playerInventory = GetComponent<PlayerInventory>();
+        }
 
         public void OnEnable()
         {
@@ -50,11 +46,21 @@ namespace SG
                 inputActions.PlayerMovement.Camera.performed += ctx => cameraInput = ctx.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
-                // rollFlag намеренно НЕ выставляется тут по событию нажатия — иначе
-                // Roll срабатывал бы мгновенно при любом нажатии Shift, включая
-                // начало удержания для спринта. rollFlag/sprintFlag считает
-                // HandleRollInput() по длительности удержания (короткое нажатие ->
-                // Roll, удержание -> Sprint), см. TickInput().
+                // БЫЛО: эти две подписки жили внутри HandleAttackInput(), которая
+                // вызывается каждый кадр из TickInput(). Каждый Update() добавлял
+                // ЕЩЁ ОДИН обработчик на "RB.performed" поверх уже висящих —
+                // подписчики множились без остановки, и одно нажатие RB спустя
+                // время вызывало HandleLightAttack() не один раз, а столько раз,
+                // сколько накопилось подписок (отсюда сгруппированные по 6-7
+                // повторов одинаковые ошибки CrossFade в консоли).
+                // Подписываемся РОВНО ОДИН РАЗ здесь, в OnEnable, как и на
+                // остальные действия выше.
+                inputActions.PlayerActions.RB.performed += i => rb_Input = true;
+
+                // БЫЛО: вторая строка тоже слушала RB (copy-paste) — из-за этого
+                // ЛЮБОЕ нажатие RB запускало одновременно и лёгкую, и тяжёлую
+                // атаку. Тяжёлая атака должна триггериться отдельной кнопкой RT.
+                inputActions.PlayerActions.RT.performed += i => rt_Input = true;
             }
 
             inputActions.Enable();
@@ -69,6 +75,7 @@ namespace SG
         {
             MoveInput(delta);
             HandleRollInput(delta);
+            HandleAttackInput(delta);
         }
 
         private void MoveInput(float delta)
@@ -81,10 +88,6 @@ namespace SG
             mouseY = cameraInput.y;
         }
 
-        // Короткое нажатие Shift -> Roll, удержание дольше rollInputThreshold ->
-        // Sprint. IsPressed() надёжно отражает текущее состояние кнопки каждый
-        // кадр (в отличие от phase == Started, который у Button-действия без
-        // interactions почти сразу переходит в Performed).
         private void HandleRollInput(float delta)
         {
             b_Input = inputActions.PlayerActions.Roll.IsPressed();
@@ -103,6 +106,25 @@ namespace SG
                 }
 
                 rollInputTimer = 0;
+            }
+        }
+
+        private void HandleAttackInput(float delta)
+        {
+            // Флаги теперь только ЧИТАЮТСЯ и сразу гасятся тут же, в месте
+            // использования (как rollFlag в HandleRollingAndSprinting) — не
+            // дожидаясь общего сброса в PlayerManager.LateUpdate(). Это не даёт
+            // атаке повторно сработать в течение того же "живого" окна кадра.
+            if (rb_Input)
+            {
+                rb_Input = false;
+                playerAttacker.HandleLightAttack(playerInventory.rightWeapon);
+            }
+
+            if (rt_Input)
+            {
+                rt_Input = false;
+                playerAttacker.HandleHeavytAttack(playerInventory.rightWeapon);
             }
         }
     }
