@@ -223,7 +223,7 @@ namespace SG
                     }
                     else
                     {
-                        animatorHandler.PlayeTargetAnimation("Locomotion", false);
+                        animatorHandler.PlayeTargetAnimation("Empty", false);
                         inAirTimer = 0;
                     }
 
@@ -255,7 +255,7 @@ namespace SG
             {
                 if (playerManager.isIntetacting || inputHandler.moveAmount > 0)
                 {
-                    myTransform.position = Vector3.Lerp(myTransform.position, targetPosition, Time.deltaTime);
+                    myTransform.position = Vector3.Lerp(myTransform.position, targetPosition, Time.deltaTime / 0.1f);
                 }
                 else
                 {

@@ -20,6 +20,11 @@ namespace SG {
             // Блокируем курсор в центре экрана для удобного управления мышью
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+            // БЫЛО: тут стояла cameraHandler = FindObjectsByType<CameraHandler>();
+            // Это не компилировалось (FindObjectsByType возвращает массив и требует
+            // параметр FindObjectsSortMode) и было лишним — cameraHandler надёжно
+            // выставляется ниже, в Start(), через CameraHandler.singleton (см.
+            // комментарий там про порядок Awake()/Start()).
         }
 
         void Start()

@@ -45,6 +45,11 @@ namespace SG
             defaultPosition = cameraTransform.localPosition.z;
             // Игнорируем слои 8, 9, 10 (обычно Player, Controller, NPC)
             ignoreLayers = ~(1 << 8 | 1 << 9 | 1 << 10);
+            // БЫЛО: FindObjectsOfType<PlayerManager>().transform — FindObjectsOfType
+            // (множественное число) возвращает массив, у массива нет свойства
+            // .transform, это ошибка компиляции. Нужен FindFirstObjectByType
+            // (единственное число), который возвращает один объект.
+            targetTransform = FindFirstObjectByType<PlayerManager>().transform;
         }
 
         public void FollowTarget(float delta)

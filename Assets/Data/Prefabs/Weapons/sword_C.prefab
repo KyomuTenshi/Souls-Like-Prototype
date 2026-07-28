@@ -119,10 +119,55 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 43293b5377fe34590bf0fef0cc3786d4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6715743501807468293}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 43293b5377fe34590bf0fef0cc3786d4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4344755722618996030}
   m_SourcePrefab: {fileID: 100100000, guid: 43293b5377fe34590bf0fef0cc3786d4, type: 3}
 --- !u!4 &201104603651099864 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 43293b5377fe34590bf0fef0cc3786d4, type: 3}
   m_PrefabInstance: {fileID: 378529895429221171}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &685012506655168098 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 43293b5377fe34590bf0fef0cc3786d4, type: 3}
+  m_PrefabInstance: {fileID: 378529895429221171}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &6715743501807468293
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 685012506655168098}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2653897, y: 1.4607986, z: 0.1536089}
+  m_Center: {x: -0.0104002515, y: 0.9719191, z: -0.000000037251933}
+--- !u!114 &4344755722618996030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 685012506655168098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93a6749d96f8a4c84b4e58434a24f005, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SG.DamageCollider
+  currentWeaponDamage: 25
