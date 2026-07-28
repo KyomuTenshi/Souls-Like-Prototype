@@ -14,6 +14,7 @@ namespace SG {
         public bool isSprinting;
         public bool isInAir;
         public bool isGrounded;
+        public bool canDoConbo;
 
         private void Awake()
         {
@@ -50,8 +51,8 @@ namespace SG {
         void Update()
         {
             float delta = Time.deltaTime;
-
             isIntetacting = anim.GetBool("isInteracting");
+            canDoConbo = anim.GetBool("canDoCombo");
 
             // rollFlag и sprintFlag пересчитываются заново каждый кадр внутри
             // InputHandler.TickInput() -> HandleRollInput() (по текущему состоянию

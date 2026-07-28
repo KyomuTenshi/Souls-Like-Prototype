@@ -5,13 +5,39 @@ namespace SG {
     {
         AnimatorHandler animatorHandler;
         PlayerManager playerManager;
+        InputHandler inputHandler;
+        public string lastAttack;
 
         private void Awake()
         {
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
             playerManager = GetComponent<PlayerManager>();
+            inputHandler = GetComponent<InputHandler>();
         }
 
+        public void HandleWeaponCombo(WeaponItem weapon)
+        {
+            if(inputHandler.comboFlag)
+            { 
+                animatorHandler.anim.SetBool("canDoCombo", false);
+                
+                if (lastAttack == weapon.OH_Light_Attack_1)
+                {
+                    animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_2, true);
+                    lastAttack = weapon.OH_Light_Attack_2;
+                }
+                else if (lastAttack == weapon.OH_Light_Attack_2)
+                {
+                    animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_3, true);
+                    lastAttack = weapon.OH_Light_Attack_3;
+                }
+                else if (lastAttack == weapon.OH_Light_Attack_3)
+                {
+                    animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_4, true);
+                    lastAttack = weapon.OH_Light_Attack_4;
+                }
+            }
+        }
         public void HandleLightAttack(WeaponItem weapon)
         {
             // Не начинаем новую атаку, пока уже играет анимация-интеракция
@@ -33,6 +59,7 @@ namespace SG {
             }
 
             animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_1, true);
+            lastAttack = weapon.OH_Light_Attack_1;
         }
 
         public void HandleHeavytAttack(WeaponItem weapon)
@@ -47,6 +74,7 @@ namespace SG {
             }
 
             animatorHandler.PlayeTargetAnimation(weapon.OH_Heavy_Attack_1, true);
+            lastAttack = weapon.OH_Heavy_Attack_1;
         }
     }
 }

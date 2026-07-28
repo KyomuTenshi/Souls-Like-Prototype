@@ -908,6 +908,7 @@ MonoBehaviour:
   rt_Input: 0
   rollFlag: 0
   sprintFlag: 0
+  comboFlag: 0
   rollInputTimer: 0
   isIntetacting: 0
   rollInputThreshold: 0.5
@@ -977,6 +978,7 @@ MonoBehaviour:
   isSprinting: 0
   isInAir: 0
   isGrounded: 1
+  canDoConbo: 0
 --- !u!114 &470831690
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1003,6 +1005,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f27f9eb3837f46658d9579cd621828b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttacker
+  lastAttack: 
 --- !u!114 &470831692
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2028,6 +2031,10 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Enemy
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 2e2584eaf7c6641b1a68e89451fa21ad, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 008de4661b90c4c5abcaba409c679edc, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

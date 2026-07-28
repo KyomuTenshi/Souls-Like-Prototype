@@ -19,6 +19,23 @@ namespace SG {
         [Range(0.1f, 1f)]
         public float interactionExitNormalizedTime = 1f;
 
+        // Длительность блендинга (CrossFade) между анимациями-интеракциями,
+        // включая шаги комбо. Раньше было жёстко зашито 0.2f внутри
+        // PlayeTargetAnimation — подобрать "плавность" под конкретные клипы
+        // можно было только через код. Теперь это поле в инспекторе:
+        // меньше значение — резче переключение (более "отзывчиво" на инпут),
+        // больше — мягче блендинг, но заметнее задержка перед сменой позы.
+        [Range(0.05f, 0.5f)]
+        public float animationBlendTime = 0.2f;
+
+        // Отдельная, более быстрая длительность CrossFade для перехода в
+        // Rec-анимацию при ОБРЫВЕ комбо (см. ComboWindowClosed ниже).
+        // Меньше animationBlendTime специально — обрыв комбо должен
+        // ощущаться как мгновенная реакция, а не как ещё один плавный
+        // переход наравне с обычной сменой удара.
+        [Range(0.02f, 0.3f)]
+        public float comboBreakBlendTime = 0.05f;
+
         public void Initialize()
         {
             playerManager = GetComponentInParent<PlayerManager>();
@@ -87,11 +104,32 @@ namespace SG {
             anim.SetFloat(horizontal, h, 0.1f, Time.deltaTime);
         }
 
-        public void PlayeTargetAnimation(string targetAnim, bool isInteracting)
+        public void PlayeTargetAnimation(string targetAnim, bool isInteracting, float blendTime = -1f)
         {
             anim.applyRootMotion = isInteracting;
             anim.SetBool("isInteracting", isInteracting);
-            anim.CrossFade(targetAnim, 0.2f);
+            anim.CrossFade(targetAnim, blendTime >= 0f ? blendTime : animationBlendTime);
+        }
+
+        // Вызывается Animation Event'ом (со строковым параметром — именем
+        // Rec-анимации) ближе к концу клипа OH_Light_Attack_02 / _03, ПОСЛЕ
+        // события EnableCombo(). Если к этому моменту canDoCombo всё ещё
+        // true — значит игрок не нажал RB внутри окна комбо, и оно
+        // закрылось само. Раньше в этом случае анимация просто зависала на
+        // последнем кадре, т.к. все состояния заходятся через CrossFade из
+        // кода, а не через встроенные переходы Animator'а с Exit Time.
+        // Явно переключаем на Rec с быстрым блендом (comboBreakBlendTime),
+        // чтобы обрыв комбо ощущался мгновенно.
+        // Если игрок успел нажать RB — HandleWeaponCombo() уже перевёл
+        // Animator в состояние следующего удара и canDoCombo уже false,
+        // так что этот метод в таком случае ничего не делает.
+        public void ComboWindowClosed(string recoveryAnim)
+        {
+            if (anim.GetBool("canDoCombo"))
+            {
+                anim.SetBool("canDoCombo", false);
+                PlayeTargetAnimation(recoveryAnim, true, comboBreakBlendTime);
+            }
         }
 
         public void CanRotate()
@@ -104,6 +142,15 @@ namespace SG {
             canRotate = false;
         }
 
+        public void EnableCombo()
+        {
+            anim.SetBool("canDoCombo", true);
+        }
+
+        public void DisableConbo()
+        {
+            anim.SetBool("canDoCombo", false);
+        }
         private void OnAnimatorMove()
         {
             if (playerManager.isIntetacting == false)

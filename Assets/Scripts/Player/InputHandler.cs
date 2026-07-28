@@ -16,6 +16,7 @@ namespace SG
 
         public bool rollFlag;
         public bool sprintFlag;
+        public bool comboFlag;
         public float rollInputTimer;
         public bool isIntetacting;
 
@@ -24,6 +25,7 @@ namespace SG
         PlayerControls inputActions;
         PlayerAttacker playerAttacker;
         PlayerInventory playerInventory;
+        PlayerManager playerManager;
 
         Vector2 movementInput;
         Vector2 cameraInput;
@@ -32,6 +34,7 @@ namespace SG
         {
             playerAttacker = GetComponent<PlayerAttacker>();
             playerInventory = GetComponent<PlayerInventory>();
+            playerManager = GetComponent<PlayerManager>();
         }
 
         public void OnEnable()
@@ -118,7 +121,23 @@ namespace SG
             if (rb_Input)
             {
                 rb_Input = false;
-                playerAttacker.HandleLightAttack(playerInventory.rightWeapon);
+
+                if (playerManager.canDoConbo)
+                {
+                    comboFlag = true;
+                    playerAttacker.HandleWeaponCombo(playerInventory.rightWeapon);
+                    comboFlag = false;
+                }
+                else
+                {
+                    if (playerManager.isIntetacting)
+                        return;
+                    
+                    if (playerManager.canDoConbo)
+                        return;
+                        
+                    playerAttacker.HandleLightAttack(playerInventory.rightWeapon);
+                }
             }
 
             if (rt_Input)
