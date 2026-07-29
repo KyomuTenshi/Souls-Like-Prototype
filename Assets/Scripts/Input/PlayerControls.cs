@@ -247,6 +247,54 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Player Quist Slots"",
+            ""id"": ""dc5b98cd-81f7-4b18-ad55-61a2da488209"",
+            ""actions"": [
+                {
+                    ""name"": ""DPadRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""d20eb8d7-b8e3-4b83-a8d5-d535f255f96a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DPadLeft"",
+                    ""type"": ""Button"",
+                    ""id"": ""0df790ab-8969-42dd-a851-654e5a79c0ad"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""de874248-6eef-4635-b66e-b28c70e1df1e"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPadRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e18358f0-4463-43d9-a353-5dbc5a0ff06e"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DPadLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -260,12 +308,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_PlayerActions_Roll = m_PlayerActions.FindAction("Roll", throwIfNotFound: true);
         m_PlayerActions_RB = m_PlayerActions.FindAction("RB", throwIfNotFound: true);
         m_PlayerActions_RT = m_PlayerActions.FindAction("RT", throwIfNotFound: true);
+        // Player Quist Slots
+        m_PlayerQuistSlots = asset.FindActionMap("Player Quist Slots", throwIfNotFound: true);
+        m_PlayerQuistSlots_DPadRight = m_PlayerQuistSlots.FindAction("DPadRight", throwIfNotFound: true);
+        m_PlayerQuistSlots_DPadLeft = m_PlayerQuistSlots.FindAction("DPadLeft", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
     {
         UnityEngine.Debug.Assert(!m_PlayerMovement.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerMovement.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_PlayerActions.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerActions.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_PlayerQuistSlots.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerQuistSlots.Disable() has not been called.");
     }
 
     /// <summary>
@@ -562,6 +615,113 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="PlayerActionsActions" /> instance referencing this action map.
     /// </summary>
     public PlayerActionsActions @PlayerActions => new PlayerActionsActions(this);
+
+    // Player Quist Slots
+    private readonly InputActionMap m_PlayerQuistSlots;
+    private List<IPlayerQuistSlotsActions> m_PlayerQuistSlotsActionsCallbackInterfaces = new List<IPlayerQuistSlotsActions>();
+    private readonly InputAction m_PlayerQuistSlots_DPadRight;
+    private readonly InputAction m_PlayerQuistSlots_DPadLeft;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Player Quist Slots".
+    /// </summary>
+    public struct PlayerQuistSlotsActions
+    {
+        private @PlayerControls m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public PlayerQuistSlotsActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerQuistSlots/DPadRight".
+        /// </summary>
+        public InputAction @DPadRight => m_Wrapper.m_PlayerQuistSlots_DPadRight;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerQuistSlots/DPadLeft".
+        /// </summary>
+        public InputAction @DPadLeft => m_Wrapper.m_PlayerQuistSlots_DPadLeft;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_PlayerQuistSlots; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="PlayerQuistSlotsActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(PlayerQuistSlotsActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="PlayerQuistSlotsActions" />
+        public void AddCallbacks(IPlayerQuistSlotsActions instance)
+        {
+            if (instance == null || m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Add(instance);
+            @DPadRight.started += instance.OnDPadRight;
+            @DPadRight.performed += instance.OnDPadRight;
+            @DPadRight.canceled += instance.OnDPadRight;
+            @DPadLeft.started += instance.OnDPadLeft;
+            @DPadLeft.performed += instance.OnDPadLeft;
+            @DPadLeft.canceled += instance.OnDPadLeft;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="PlayerQuistSlotsActions" />
+        private void UnregisterCallbacks(IPlayerQuistSlotsActions instance)
+        {
+            @DPadRight.started -= instance.OnDPadRight;
+            @DPadRight.performed -= instance.OnDPadRight;
+            @DPadRight.canceled -= instance.OnDPadRight;
+            @DPadLeft.started -= instance.OnDPadLeft;
+            @DPadLeft.performed -= instance.OnDPadLeft;
+            @DPadLeft.canceled -= instance.OnDPadLeft;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PlayerQuistSlotsActions.UnregisterCallbacks(IPlayerQuistSlotsActions)" />.
+        /// </summary>
+        /// <seealso cref="PlayerQuistSlotsActions.UnregisterCallbacks(IPlayerQuistSlotsActions)" />
+        public void RemoveCallbacks(IPlayerQuistSlotsActions instance)
+        {
+            if (m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="PlayerQuistSlotsActions.AddCallbacks(IPlayerQuistSlotsActions)" />
+        /// <seealso cref="PlayerQuistSlotsActions.RemoveCallbacks(IPlayerQuistSlotsActions)" />
+        /// <seealso cref="PlayerQuistSlotsActions.UnregisterCallbacks(IPlayerQuistSlotsActions)" />
+        public void SetCallbacks(IPlayerQuistSlotsActions instance)
+        {
+            foreach (var item in m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="PlayerQuistSlotsActions" /> instance referencing this action map.
+    /// </summary>
+    public PlayerQuistSlotsActions @PlayerQuistSlots => new PlayerQuistSlotsActions(this);
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Movement" which allows adding and removing callbacks.
     /// </summary>
@@ -612,5 +772,27 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRT(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Quist Slots" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="PlayerQuistSlotsActions.AddCallbacks(IPlayerQuistSlotsActions)" />
+    /// <seealso cref="PlayerQuistSlotsActions.RemoveCallbacks(IPlayerQuistSlotsActions)" />
+    public interface IPlayerQuistSlotsActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "DPadRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDPadRight(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "DPadLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDPadLeft(InputAction.CallbackContext context);
     }
 }
