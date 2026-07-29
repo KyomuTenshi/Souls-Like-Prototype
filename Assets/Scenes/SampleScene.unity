@@ -2601,6 +2601,8 @@ MonoBehaviour:
   anim: {fileID: 1738590764}
   canRotate: 1
   interactionExitNormalizedTime: 0.7
+  animationBlendTime: 0.2
+  comboBreakBlendTime: 0.05
 --- !u!95 &1738590764
 Animator:
   serializedVersion: 7

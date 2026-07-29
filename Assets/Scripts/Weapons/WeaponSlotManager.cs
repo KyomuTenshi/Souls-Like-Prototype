@@ -9,8 +9,24 @@ namespace SG {
         DamageCollider leftHandDamageCollider;
         DamageCollider rightHandDamageCollider;
 
+        Animator animator;
+
+        int leftArmLayerIndex;
+        int rightArmLayerIndex;
+
         private void Awake()
         {
+            animator = GetComponent<Animator>();
+
+            // CrossFade без явного индекса слоя может уйти не на тот слой
+            // (например, на Base Layer) и перетереть позу всего тела вместо
+            // того, чтобы задеть только замаскированную под руку часть —
+            // из-за этого вторая рука "замирала". GetLayerIndex ищем один
+            // раз по имени (а не хардкодим число), чтобы не сломаться, если
+            // порядок слоёв в Animator Controller поменяется.
+            leftArmLayerIndex = animator.GetLayerIndex("Left_Arm_idle_01");
+            rightArmLayerIndex = animator.GetLayerIndex("Right_Arm_idle_01");
+
             WeaponHolderSlot[] weaponHolderSlots = GetComponentsInChildren<WeaponHolderSlot>();
             foreach (WeaponHolderSlot weaponSlot in weaponHolderSlots)
             {
@@ -30,10 +46,30 @@ namespace SG {
             {
                 leftHandSlot.LoadWeaponModel(weaponItem);
                 LoadLeftHandDamageCollider();
+
+                #region Handle Weapon Idle Animations
+                if (weaponItem != null)
+                {
+                    animator.CrossFade(weaponItem.left_hand_idle, 0.2f, leftArmLayerIndex);
+                } else
+                {
+                    animator.CrossFade("Left Arm Empty", 0.2f, leftArmLayerIndex);
+                }
+                #endregion
             } else
             {
                 rightHandSlot.LoadWeaponModel(weaponItem);
                 LoadRightHandDamageCollider();
+
+                #region Handle Weapon Idle Animations
+                if (weaponItem != null)
+                {
+                    animator.CrossFade(weaponItem.right_hand_idle, 0.2f, rightArmLayerIndex);
+                } else
+                {
+                    animator.CrossFade("Right Arm Empty", 0.2f, rightArmLayerIndex);
+                }
+                #endregion
             }
         }
 
