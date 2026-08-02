@@ -11,6 +11,7 @@ namespace SG
         public float mouseY;
 
         public bool b_Input;
+        public bool a_Input;
         public bool rb_Input;
         public bool rt_Input;
         public bool d_Pad_Up;
@@ -53,10 +54,13 @@ namespace SG
                 inputActions.PlayerMovement.Camera.performed += ctx => cameraInput = ctx.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
-                // Подписки строго ОДИН РАЗ здесь, в OnEnable (см. историю бага
-                // с размножением подписчиков при подписке внутри TickInput).
+                // Все one-shot подписки — строго ОДИН РАЗ здесь, в OnEnable.
+                // Подписка внутри TickInput (вызывается каждый кадр из
+                // PlayerManager.Update) добавляла бы нового подписчика каждый
+                // кадр — та же ошибка, что уже была с RB/RT/D-Pad.
                 inputActions.PlayerActions.RB.performed += i => rb_Input = true;
                 inputActions.PlayerActions.RT.performed += i => rt_Input = true;
+                inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
 
                 inputActions.PlayerQuistSlots.DPadRight.performed += i => d_Pad_Right = true;
                 inputActions.PlayerQuistSlots.DPadLeft.performed += i => d_Pad_Left = true;
@@ -111,8 +115,6 @@ namespace SG
 
         private void HandleAttackInput(float delta)
         {
-            // Флаги читаются и гасятся сразу в месте использования — атака не
-            // может сработать дважды в одном "живом" окне кадра.
             if (rb_Input)
             {
                 rb_Input = false;
@@ -125,10 +127,6 @@ namespace SG
                 }
                 else
                 {
-                    // Проверка isIntetacting выполняется внутри HandleLightAttack —
-                    // дублировать её здесь ранним return нельзя: он заодно
-                    // пропускал обработку rt_Input ниже, и нажатие тяжёлой
-                    // атаки в этом кадре терялось.
                     playerAttacker.HandleLightAttack(playerInventory.rightWeapon);
                 }
             }
@@ -142,9 +140,6 @@ namespace SG
 
         private void HandleQuackSlotsInput(float delta)
         {
-            // Гасим флаг сразу здесь, как rb_Input/rt_Input выше, а не ждём
-            // PlayerManager.LateUpdate() — иначе одно нажатие могло бы
-            // обработаться дважды при изменении порядка Update'ов.
             if (d_Pad_Right)
             {
                 d_Pad_Right = false;

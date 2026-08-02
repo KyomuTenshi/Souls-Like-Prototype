@@ -16,20 +16,14 @@ namespace SG {
         public bool isGrounded;
         public bool canDoConbo;
 
-        // Кэш хэшей параметров Animator: GetBool(string) хэширует строку при
-        // каждом вызове, а эти два читаются каждый кадр.
         static readonly int IsInteractingHash = Animator.StringToHash("isInteracting");
         static readonly int CanDoComboHash = Animator.StringToHash("canDoCombo");
 
         private void Awake()
         {
-            // Блокируем курсор в центре экрана для удобного управления мышью
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
-            // Свои компоненты берём в Awake (конвенция Unity: своё — в Awake,
-            // зависящее от чужих Awake — в Start). Это ещё и надёжнее: другие
-            // скрипты могут обратиться к этим ссылкам уже в своих Start().
             inputHandler = GetComponent<InputHandler>();
             anim = GetComponentInChildren<Animator>();
             playerLocomotion = GetComponent<PlayerLocomotion>();
@@ -37,10 +31,6 @@ namespace SG {
 
         void Start()
         {
-            // CameraHandler.singleton читаем в Start(), а не в Awake(): Unity не
-            // гарантирует порядок Awake() между объектами, но гарантирует, что
-            // ВСЕ Awake() отработают раньше ЛЮБОГО Start(). К этому моменту
-            // singleton заполнен железно.
             cameraHandler = CameraHandler.singleton;
         }
 
@@ -50,29 +40,24 @@ namespace SG {
             isIntetacting = anim.GetBool(IsInteractingHash);
             canDoConbo = anim.GetBool(CanDoComboHash);
 
-            // TickInput вызывается здесь, ПЕРЕД чтением флагов ниже — свежее
-            // значение выставлено до использования вне зависимости от порядка
-            // Update() между скриптами.
             inputHandler.TickInput(delta);
             playerLocomotion.HandleMovement(delta);
             playerLocomotion.HandleRollingAndSprinting(delta);
             playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
+
+            CheckForInteractableObject();
         }
 
         private void LateUpdate()
         {
             float delta = Time.deltaTime;
 
-            // Камера — в LateUpdate, после перемещения игрока в Update.
             if (cameraHandler != null)
             {
                 cameraHandler.FollowTarget(delta);
                 cameraHandler.HandleCameraRotation(delta, inputHandler.mouseX, inputHandler.mouseY);
             }
 
-            // Страховочная сетка: one-shot флаги уже гасятся в местах
-            // потребления (InputHandler), но сброс здесь безвреден и ловит
-            // любой флаг, взведённый колбэком в "мёртвой зоне" кадра.
             inputHandler.rollFlag = false;
             inputHandler.sprintFlag = false;
             inputHandler.rb_Input = false;
@@ -81,10 +66,43 @@ namespace SG {
             inputHandler.d_Pad_Down = false;
             inputHandler.d_Pad_Right = false;
             inputHandler.d_Pad_Left = false;
+            inputHandler.a_Input = false;
 
             if (isInAir)
             {
                 playerLocomotion.inAirTimer = playerLocomotion.inAirTimer + Time.deltaTime;
+            }
+        }
+
+        public void CheckForInteractableObject()
+        {
+            // cameraHandler может быть null (сцена без камеры, или порядок
+            // инициализации ещё не завершился) — SphereCast с cameraHandler.ignoreLayers
+            // без проверки уронил бы NRE именно в такой сцене.
+            if (cameraHandler == null)
+                return;
+
+            RaycastHit hit;
+
+            if (Physics.SphereCast(transform.position, 0.3f, transform.forward, out hit, 1f, cameraHandler.ignoreLayers))
+            {
+                Interactable interactableObject = hit.collider.GetComponent<Interactable>();
+
+                if (interactableObject != null)
+                {
+                    // interactableText зарезервирован под будущий UI-подсказчик
+                    // ("E — поднять [название]") — пока не выводится никуда,
+                    // но вычисляется здесь заранее, чтобы не искать точку входа
+                    // повторно, когда дойдём до этого урока.
+                    string interactableText = interactableObject.interactbleText;
+
+                    if (inputHandler.a_Input)
+                    {
+                        // Переиспользуем interactableObject вместо повторного
+                        // GetComponent — тот же компонент, второй вызов был лишним.
+                        interactableObject.Interact(this);
+                    }
+                }
             }
         }
     }
