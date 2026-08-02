@@ -5,12 +5,13 @@ namespace SG {
     {
         [Header("Animator Layers")]
         // Имена СЛОЁВ в Animator Controller (вкладка Layers в окне Animator),
-        // не имена состояний! В туториале слои называются "Left Arm" / "Right Arm".
-        // Если слой не найден, используем -1 — CrossFade тогда ищет состояние
-        // по всем слоям (прежнее поведение проекта), и всё продолжает работать.
+        // не имена состояний! Если слой не найден, используем -1 — CrossFade
+        // тогда ищет состояние по всем слоям, и всё продолжает работать.
         [SerializeField] private string leftArmLayerName = "Left Arm";
         [SerializeField] private string rightArmLayerName = "Right Arm";
 
+        public WeaponItem attackingWeapon;
+        
         WeaponHolderSlot leftHandSlot;
         WeaponHolderSlot rightHandSlot;
 
@@ -19,6 +20,8 @@ namespace SG {
 
         Animator animator;
         QuickSlotsUI quickSlotsUI;
+
+        PlayerStats playerStats;
 
         int leftArmLayerIndex;
         int rightArmLayerIndex;
@@ -33,6 +36,8 @@ namespace SG {
 
             leftArmLayerIndex = animator.GetLayerIndex(leftArmLayerName);
             rightArmLayerIndex = animator.GetLayerIndex(rightArmLayerName);
+
+            playerStats = GetComponentInParent<PlayerStats>();
 
             // Warning, а не Error: со значением -1 CrossFade корректно найдёт
             // состояние по всем слоям, игра работает. Но лучше указать точное
@@ -137,6 +142,28 @@ namespace SG {
                 rightHandDamageCollider.DisaleDamageCollider();
         }
 
+        #endregion
+
+        #region Handle Weapon Stamina Drain
+        // Оба метода вызываются Animation Event'ами — guard'ы по той же
+        // причине, что у Open/Close выше: событие может сработать, когда
+        // attackingWeapon ещё не выставлен (клип запущен не через
+        // PlayerAttacker) или playerStats не найден.
+        public void DrainStaminaLightAttack()
+        {
+            if (playerStats == null || attackingWeapon == null)
+                return;
+
+            playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.lightAttackMultiplier));
+        }
+
+        public void DrainStaminaHeavyAttack()
+        {
+            if (playerStats == null || attackingWeapon == null)
+                return;
+
+            playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.heavyAttackMultiplier));
+        }
         #endregion
     }
 }

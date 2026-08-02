@@ -6,11 +6,13 @@ namespace SG {
         AnimatorHandler animatorHandler;
         PlayerManager playerManager;
         InputHandler inputHandler;
+        WeaponSlotManager weaponSlotManager;
         public string lastAttack;
 
         private void Awake()
         {
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
+            weaponSlotManager = GetComponentInChildren<WeaponSlotManager>();
             playerManager = GetComponent<PlayerManager>();
             inputHandler = GetComponent<InputHandler>();
         }
@@ -62,6 +64,7 @@ namespace SG {
                 return;
             }
 
+            weaponSlotManager.attackingWeapon = weapon;
             animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_1, true);
             lastAttack = weapon.OH_Light_Attack_1;
         }
@@ -83,6 +86,7 @@ namespace SG {
                 return;
             }
 
+            weaponSlotManager.attackingWeapon = weapon;
             animatorHandler.PlayeTargetAnimation(weapon.OH_Heavy_Attack_1, true);
             lastAttack = weapon.OH_Heavy_Attack_1;
         }
