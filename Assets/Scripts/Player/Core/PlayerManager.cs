@@ -25,6 +25,10 @@ namespace SG {
 
         static readonly int IsInteractingHash = Animator.StringToHash("isInteracting");
         static readonly int CanDoComboHash = Animator.StringToHash("canDoCombo");
+        // Параметр в Animator должен называться РОВНО "IsInAir" (регистр
+        // важен). Проверь вкладку Parameters. Заодно: слой с именем isInAir
+        // в Animator Controller — лишний, параметры на слоях не живут.
+        static readonly int IsInAirHash = Animator.StringToHash("IsInAir");
 
         private void Awake()
         {
@@ -48,11 +52,13 @@ namespace SG {
             float delta = Time.deltaTime;
             isIntetacting = anim.GetBool(IsInteractingHash);
             canDoConbo = anim.GetBool(CanDoComboHash);
+            anim.SetBool(IsInAirHash, isInAir);
 
             inputHandler.TickInput(delta);
             playerLocomotion.HandleMovement(delta);
             playerLocomotion.HandleRollingAndSprinting(delta);
             playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
+            playerLocomotion.HandleJumping();
 
             CheckForInteractableObject();
         }
@@ -76,6 +82,7 @@ namespace SG {
             inputHandler.d_Pad_Right = false;
             inputHandler.d_Pad_Left = false;
             inputHandler.a_Input = false;
+            inputHandler.jump_Input = false;
 
             if (isInAir)
             {

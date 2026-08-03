@@ -48,13 +48,16 @@ MonoBehaviour:
   targetTransform: {fileID: 0}
   cameraTransform: {fileID: 8224621126980740067}
   cameraPivotTransform: {fileID: 6016741648374037541}
+  ignoreLayers:
+    serializedVersion: 2
+    m_Bits: 0
   lookSpeed: 150
   pivotSpeed: 150
-  followSpeed: 0.1
+  followSpeed: 0.15
   minimumPivot: -35
-  maximumPivot: 35
+  maximumPivot: 70
   cameraSphereRadius: 0.2
-  cameraCollisionOffSet: 0.2
+  cameraCollisionOffSet: 0.1
   minimunCollisionOffSet: 0.2
 --- !u!1 &1106502758733164719
 GameObject:
@@ -205,7 +208,7 @@ MonoBehaviour:
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
   m_RenderPostProcessing: 1
-  m_Antialiasing: 0
+  m_Antialiasing: 3
   m_AntialiasingQuality: 2
   m_StopNaN: 0
   m_Dithering: 0

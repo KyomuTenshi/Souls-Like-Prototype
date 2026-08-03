@@ -16,7 +16,7 @@ namespace SG {
         static readonly int CanDoComboHash = Animator.StringToHash("canDoCombo");
 
         // Момент normalizedTime (0..1), при котором для НЕ-Roll интеракций
-        // (Falling, Land и т.п.) управление возвращается игроку. 1 = ждать
+        // (Land, Pick Up и т.п.) управление возвращается игроку. 1 = ждать
         // полный клип. Если "Land" ощущается долгим — поставь, например, 0.75.
         [Range(0.1f, 1f)]
         public float interactionExitNormalizedTime = 1f;
@@ -146,26 +146,35 @@ namespace SG {
             AnimatorStateInfo stateInfo = anim.GetCurrentAnimatorStateInfo(0);
 
             float delta = Time.deltaTime;
+            if (delta <= 0f)
+                return;
+
             Rigidbody rb = playerLocomotion.rb;
             rb.linearDamping = 0;
 
             // Логика ниже разветвляется по типу интеракции: только Roll
-            // получает ручной разгон/торможение; Falling/Land без root motion
-            // персонажа не толкают (их физику считает HandleFalling).
+            // получает ручной разгон/торможение; воздушные состояния
+            // (Jump/Falling) физику не трогают — её ведёт HandleFalling.
             bool isRollingState = stateInfo.IsName("Rolling");
+            bool inAir = playerManager.isInAir;
 
             // Для Roll порог всегда 1 (ждём конец клипа). Для остальных
             // интеракций — настраиваемый interactionExitNormalizedTime.
             float exitThreshold = isRollingState ? 1f : interactionExitNormalizedTime;
 
-            if (stateInfo.normalizedTime >= exitThreshold)
+            // В воздухе авто-выход ЗАПРЕЩЁН: зацикленный Falling проходит
+            // normalizedTime >= 1 на каждом витке, и без этой проверки
+            // управление возвращалось бы игроку прямо в полёте. Момент
+            // выхода из воздушных состояний определяет HandleFalling
+            // (Land/Empty при касании земли) — это фаза 3.
+            if (!inAir && stateInfo.normalizedTime >= exitThreshold)
             {
                 rb.linearVelocity = Vector3.zero;
 
                 if (!isRollingState)
                 {
-                    // Falling/Land: явно возвращаем управление, не дожидаясь
-                    // Animation Event, которого может не быть в контроллере.
+                    // Land/Pick Up и т.п.: явно возвращаем управление, не
+                    // дожидаясь Animation Event, которого может не быть.
                     anim.applyRootMotion = false;
                     anim.SetBool(IsInteractingHash, false);
                 }
@@ -180,7 +189,8 @@ namespace SG {
 
             if (deltaPosition.sqrMagnitude > 0.0001f)
             {
-                // Реальный root motion есть (например, у атак) — используем его.
+                // Реальный root motion есть (например, у атак и старта
+                // прыжка) — используем его для горизонтали.
                 velocity = deltaPosition / delta;
             }
             else if (isRollingState)
@@ -200,10 +210,25 @@ namespace SG {
                 float easedSpeed = playerLocomotion.RollSpeed * speedMultiplier;
                 velocity = playerLocomotion.myTransform.forward * easedSpeed;
             }
+            else if (inAir)
+            {
+                // Воздушное состояние без root motion (Falling-цикл):
+                // скорость целиком ведёт физика/HandleFalling — не мешаем,
+                // иначе горизонтальный импульс прыжка обнулялся бы каждый кадр.
+                velocity = rb.linearVelocity;
+            }
             else
             {
-                // Интеракция без root motion (Falling, Land) — не толкаем вперёд.
+                // Наземная интеракция без root motion — стоим на месте.
                 velocity = Vector3.zero;
+            }
+
+            // Ключ к физическому прыжку: в воздухе вертикальную скорость
+            // НИКОГДА не перетираем root motion'ом (у клипов y всё равно
+            // занулён выше) — сохраняем импульс прыжка и ускорение падения.
+            if (inAir)
+            {
+                velocity.y = rb.linearVelocity.y;
             }
 
             rb.linearVelocity = velocity;

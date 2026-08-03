@@ -7,6 +7,7 @@ namespace SG {
         PlayerManager playerManager;
         InputHandler inputHandler;
         WeaponSlotManager weaponSlotManager;
+        PlayerStats playerStats;
         public string lastAttack;
 
         private void Awake()
@@ -15,11 +16,23 @@ namespace SG {
             weaponSlotManager = GetComponentInChildren<WeaponSlotManager>();
             playerManager = GetComponent<PlayerManager>();
             inputHandler = GetComponent<InputHandler>();
+            playerStats = GetComponent<PlayerStats>();
+        }
+
+        // Souls-правило: замахнуться можно, пока стамина > 0 (стоимость спишет
+        // Animation Event через WeaponSlotManager, и она может увести в ноль).
+        // При playerStats == null гейт тихо отключается — ничего не ломаем.
+        private bool HasStaminaForAttack()
+        {
+            return playerStats == null || playerStats.HasStamina();
         }
 
         public void HandleWeaponCombo(WeaponItem weapon)
         {
             if (weapon == null)
+                return;
+
+            if (!HasStaminaForAttack())
                 return;
 
             if(inputHandler.comboFlag)
@@ -58,6 +71,9 @@ namespace SG {
             if (playerManager.isIntetacting)
                 return;
 
+            if (!HasStaminaForAttack())
+                return;
+
             if (string.IsNullOrEmpty(weapon.OH_Light_Attack_1))
             {
                 Debug.LogWarning("OH_Light_Attack_1 не задан на оружии " + weapon.itemName);
@@ -78,6 +94,9 @@ namespace SG {
             }
 
             if (playerManager.isIntetacting)
+                return;
+
+            if (!HasStaminaForAttack())
                 return;
 
             if (string.IsNullOrEmpty(weapon.OH_Heavy_Attack_1))

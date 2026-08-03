@@ -5,6 +5,7 @@ namespace SG
     public class PlayerLocomotion : MonoBehaviour
     {
         PlayerManager playerManager;
+        PlayerStats playerStats;
         Transform cameraObject;
         InputHandler inputHandler;
         public Vector3 moveDirection;
@@ -31,6 +32,29 @@ namespace SG
         [SerializeField] float sprintSpeed = 7;
         [SerializeField] float fallingSpeed = 45;
 
+        [Header("Jump Stats")]
+        // Прыжок теперь ФИЗИЧЕСКИЙ: вертикальный импульс + три фазы анимации.
+        // Фаза 1 (jumpStartAnimation) запускается кодом; фаза 2 (Falling,
+        // зацикленная) — переходом в Animator Controller по Has Exit Time;
+        // фаза 3 (Land/Empty) — кодом в HandleFalling при касании земли.
+        [SerializeField] float jumpForce = 9f;
+        // Окно "взлёта": пока оно идёт, проверка земли в HandleFalling
+        // пропускается — иначе луч вниз тут же "приземлял" бы игрока
+        // обратно в первый же кадр прыжка.
+        [SerializeField] float jumpAscendGraceTime = 0.35f;
+        // Имя состояния фазы 1. По умолчанию "Jump" — как в туториале,
+        // чтобы ничего не переименовывать в контроллере.
+        [SerializeField] string jumpStartAnimation = "Jump";
+
+        [Header("Stamina Costs")]
+        // Гейт в духе souls: действие доступно, пока стамина > 0, а стоимость
+        // может увести её ровно в ноль (как в Dark Souls).
+        [SerializeField] int rollStaminaCost = 15;
+        [SerializeField] int jumpStaminaCost = 10;
+        [SerializeField] float sprintStaminaCostPerSecond = 8f;
+
+        float jumpGraceTimer;
+
         // Используется в AnimatorHandler.OnAnimatorMove() как запасной вариант,
         // когда у клипа анимации (например Roll) нет собственного смещения
         // вперёд (Average Velocity == 0), и двигать персонажа приходится вручную.
@@ -39,6 +63,7 @@ namespace SG
         void Start()
         {
             playerManager = GetComponent<PlayerManager>();
+            playerStats = GetComponent<PlayerStats>();
             rb = GetComponent<Rigidbody>();
             inputHandler = GetComponent<InputHandler>();
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
@@ -93,15 +118,23 @@ namespace SG
             moveDirection.Normalize();
             moveDirection.y = 0;
 
-            // БЫЛО: ветка else с двумя под-случаями, которые оба умножали на
-            // movementSpeed (speed там всегда и был movementSpeed) — мёртвое
-            // ветвление. Поведение после схлопывания идентично прежнему.
             float speed = movementSpeed;
 
-            if (inputHandler.sprintFlag && inputHandler.moveAmount > 0.5f)
+            // Спринт: нужен зажатый флаг, заметный ввод и стамина > 0.
+            // playerStats == null (компонент не повешен) — фича тихо
+            // отключается, ничего не ломая.
+            bool wantsSprint = inputHandler.sprintFlag && inputHandler.moveAmount > 0.5f;
+            bool canSprint = playerStats == null || playerStats.HasStamina();
+
+            if (wantsSprint && canSprint)
             {
                 speed = sprintSpeed;
                 playerManager.isSprinting = true;
+
+                if (playerStats != null)
+                {
+                    playerStats.DrainStamina(sprintStaminaCostPerSecond * delta);
+                }
             }
             else
             {
@@ -132,6 +165,11 @@ namespace SG
                 // скриптами Unity не гарантирован.
                 inputHandler.rollFlag = false;
 
+                // Выдохся — ролла нет (souls-правило: действие доступно,
+                // пока стамина строго больше нуля).
+                if (playerStats != null && !playerStats.HasStamina())
+                    return;
+
                 moveDirection = cameraObject.forward * inputHandler.vertical;
                 moveDirection += cameraObject.right * inputHandler.horizontal;
 
@@ -145,6 +183,11 @@ namespace SG
                         animatorHandler.PlayeTargetAnimation("Rolling", true);
                         Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
                         myTransform.rotation = rollRotation;
+
+                        if (playerStats != null)
+                        {
+                            playerStats.TakeStaminaDamage(rollStaminaCost);
+                        }
                     }
                 }
                 else
@@ -152,6 +195,7 @@ namespace SG
                     // BackStep: анимации пока нет в проекте. Включается одной
                     // строкой, когда клип появится в Animator Controller.
                     // animatorHandler.PlayeTargetAnimation("Backstep", true);
+                    // Не забудь тогда добавить и стамина-кост, как у ролла выше.
                 }
             }
         }
@@ -184,8 +228,16 @@ namespace SG
 
             targetPosition = myTransform.position;
 
+            // Окно взлёта после прыжка: пока идёт — землю не ищем вообще,
+            // персонаж гарантированно успевает оторваться от неё.
+            bool jumpAscending = jumpGraceTimer > 0f;
+            if (jumpAscending)
+            {
+                jumpGraceTimer -= delta;
+            }
+
             Debug.DrawRay(origin, -Vector3.up * minimunDistanceNeededToBeginFall, Color.red, 0.1f, false);
-            if (Physics.Raycast(origin, -Vector3.up, out hit, minimunDistanceNeededToBeginFall, ignoreForGroundCheck))
+            if (!jumpAscending && Physics.Raycast(origin, -Vector3.up, out hit, minimunDistanceNeededToBeginFall, ignoreForGroundCheck))
             {
                 // hit.normal (нормаль поверхности), а не hit.point — ProjectOnPlane
                 // в HandleMovement ждёт именно нормаль плоскости.
@@ -197,6 +249,8 @@ namespace SG
 
                 if (playerManager.isInAir)
                 {
+                    // ФАЗА 3 прыжка/падения: долгий полёт — жёсткое
+                    // приземление (Land), короткий — мгновенный выход (Empty).
                     if (inAirTimer > 0.5f)
                     {
                         Debug.Log("You were in the air for " + inAirTimer);
@@ -221,6 +275,10 @@ namespace SG
 
                 if (playerManager.isInAir == false)
                 {
+                    // ФАЗА 2 при обычном сходе с обрыва (без прыжка): сразу
+                    // включаем зацикленное падение. После прыжка сюда не
+                    // попадаем (isInAir уже true) — в Falling переводит
+                    // переход Jump -> Falling в самом Animator Controller.
                     if (playerManager.isIntetacting == false)
                     {
                         animatorHandler.PlayeTargetAnimation("Falling", true);
@@ -243,6 +301,62 @@ namespace SG
                 {
                     myTransform.position = targetPosition;
                 }
+            }
+        }
+        
+        public void HandleJumping()
+        {
+            if (playerManager.isIntetacting)
+                return;
+
+            if (inputHandler.jump_Input)
+            {
+                // Гасим флаг сразу же, иначе он никогда не сбросится (в
+                // InputHandler он только выставляется в true) и прыжок будет
+                // повторно триггериться на каждом кадре.
+                inputHandler.jump_Input = false;
+
+                // Прыгать можно только с земли — никаких прыжков в полёте.
+                if (!playerManager.isGrounded)
+                    return;
+
+                if (playerStats != null && !playerStats.HasStamina())
+                    return;
+
+                moveDirection = cameraObject.forward * inputHandler.vertical;
+                moveDirection += cameraObject.right * inputHandler.horizontal;
+                moveDirection.y = 0;
+                moveDirection.Normalize();
+
+                // Поворот в сторону движения — только если ввод есть.
+                // Прыжок с места (moveAmount == 0) теперь тоже работает.
+                if (inputHandler.moveAmount > 0 && moveDirection.sqrMagnitude > 0.0001f)
+                {
+                    Quaternion jumpRotation = Quaternion.LookRotation(moveDirection);
+                    myTransform.rotation = jumpRotation;
+                }
+
+                // ФАЗА 1: стартовый клип прыжка.
+                animatorHandler.PlayeTargetAnimation(jumpStartAnimation, true);
+
+                if (playerStats != null)
+                {
+                    playerStats.TakeStaminaDamage(jumpStaminaCost);
+                }
+
+                // Реальный вертикальный импульс. Дальше вертикаль ведёт
+                // HandleFalling (ручная гравитация), горизонталь — root
+                // motion клипа либо сохранённая скорость (см. OnAnimatorMove).
+                playerManager.isGrounded = false;
+                playerManager.isInAir = true;
+                inAirTimer = 0;
+                jumpGraceTimer = jumpAscendGraceTime;
+
+                Vector3 jumpVelocity = inputHandler.moveAmount > 0
+                    ? moveDirection * movementSpeed
+                    : Vector3.zero;
+                jumpVelocity.y = jumpForce;
+                rb.linearVelocity = jumpVelocity;
             }
         }
         #endregion

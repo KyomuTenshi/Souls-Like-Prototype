@@ -13,10 +13,24 @@ namespace SG {
         public int maxStamina;
         public int currentStamina;
 
+        [Header("Stamina Regen")]
+        // Классика souls: стамина сама восстанавливается, но не сразу после
+        // траты (задержка) и не во время спринта/действий.
+        [SerializeField] float staminaRegenRate = 20f;      // единиц в секунду
+        [SerializeField] float staminaRegenDelay = 1.2f;    // пауза после траты
+
         public HealthBar healthBar;
         public StaminaBar staminaBar;
 
         AnimatorHandler animatorHandler;
+        PlayerManager playerManager;
+
+        // Внутренний float-двойник currentStamina: позволяет плавно тратить
+        // (спринт по delta) и плавно копить, а наружу (UI, туториал) отдавать
+        // привычный int. currentStamina остаётся публичным int — совместимость
+        // с уроками не трогаем.
+        float staminaFloat;
+        float staminaRegenTimer;
 
         private void Awake()
         {
@@ -29,6 +43,7 @@ namespace SG {
                 staminaBar = FindFirstObjectByType<StaminaBar>(FindObjectsInactive.Include);
 
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
+            playerManager = GetComponent<PlayerManager>();
         }
 
         void Start()
@@ -47,6 +62,7 @@ namespace SG {
 
             maxStamina = SetMaxStaminaFromStaminaLevel();
             currentStamina = maxStamina;
+            staminaFloat = maxStamina;
 
             // Без SetMaxStamina слайдер остаётся с дефолтным maxValue = 1 и
             // визуально "опустошается" за один удар, хотя числа верные.
@@ -60,6 +76,11 @@ namespace SG {
             }
         }
 
+        private void Update()
+        {
+            RegenerateStamina();
+        }
+
         private int SetMaxHealthFromHealthLevel()
         {
             maxHealth = healthLevel * 10;
@@ -70,6 +91,13 @@ namespace SG {
         {
             maxStamina = staminaLevel * 10;
             return maxStamina;
+        }
+
+        // Действие доступно, пока стамина строго больше нуля (по умолчанию),
+        // при этом стоимость может увести её в ноль — как в Dark Souls.
+        public bool HasStamina(int cost = 1)
+        {
+            return currentStamina >= cost;
         }
 
         public void TakeDamage(int damage)
@@ -100,11 +128,59 @@ namespace SG {
             }
         }
 
+        // Разовая трата (атаки через Animation Event, ролл, прыжок).
+        // Сигнатура не менялась — WeaponSlotManager и туториал зовут её как раньше.
         public void TakeStaminaDamage(int damage)
         {
-            // Clamp снизу: без него выносливость уходила в минус, и после
-            // "перерасхода" пришлось бы восстанавливать невидимый долг.
-            currentStamina = Mathf.Max(0, currentStamina - damage);
+            staminaFloat = Mathf.Max(0f, staminaFloat - damage);
+            SyncStaminaToInt();
+            staminaRegenTimer = staminaRegenDelay;
+        }
+
+        // Плавная трата по времени (спринт): дробные значения копятся во
+        // float-двойнике, int в UI тикает вниз без рывков.
+        public void DrainStamina(float amount)
+        {
+            if (amount <= 0f)
+                return;
+
+            staminaFloat = Mathf.Max(0f, staminaFloat - amount);
+            SyncStaminaToInt();
+            staminaRegenTimer = staminaRegenDelay;
+        }
+
+        private void RegenerateStamina()
+        {
+            if (isDead)
+                return;
+
+            // Не копим во время спринта и анимаций-интеракций (атака, ролл,
+            // приземление) — стамина начинает возвращаться, когда игрок
+            // "отдышался".
+            if (playerManager != null && (playerManager.isSprinting || playerManager.isIntetacting))
+                return;
+
+            if (staminaRegenTimer > 0f)
+            {
+                staminaRegenTimer -= Time.deltaTime;
+                return;
+            }
+
+            if (staminaFloat >= maxStamina)
+                return;
+
+            staminaFloat = Mathf.Min(maxStamina, staminaFloat + staminaRegenRate * Time.deltaTime);
+            SyncStaminaToInt();
+        }
+
+        private void SyncStaminaToInt()
+        {
+            int newValue = Mathf.FloorToInt(staminaFloat);
+
+            if (newValue == currentStamina)
+                return;
+
+            currentStamina = newValue;
 
             if (staminaBar != null)
             {

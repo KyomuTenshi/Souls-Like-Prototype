@@ -112,6 +112,7 @@ MonoBehaviour:
   a_Input: 0
   rb_Input: 0
   rt_Input: 0
+  jump_Input: 0
   d_Pad_Up: 0
   d_Pad_Down: 0
   d_Pad_Left: 0
@@ -143,11 +144,17 @@ MonoBehaviour:
   minimunDistanceNeededToBeginFall: 1
   grounfDirectionRayDistance: 0.2
   inAirTimer: 0
-  movementSpeed: 5
-  rotationSpeed: 10
-  rollSpeed: 7.6
-  sprintSpeed: 10
-  fallingSpeed: 90
+  movementSpeed: 4
+  rotationSpeed: 16
+  rollSpeed: 11
+  sprintSpeed: 8.5
+  fallingSpeed: 6
+  jumpForce: 10
+  jumpAscendGraceTime: 0.1
+  jumpStartAnimation: Jump
+  rollStaminaCost: 22
+  jumpStaminaCost: 12
+  sprintStaminaCostPerSecond: 8
 --- !u!114 &440871251808547787
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160,6 +167,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fa5e3a650b2148e08ab8897d996662e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerManager
+  interactableUIGameObject: {fileID: 0}
+  itemInteractableGameObject: {fileID: 0}
+  itemNotificationDuration: 2
   isIntetacting: 0
   isSprinting: 0
   isInAir: 0
@@ -201,7 +211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f27f9eb3837f46658d9579cd621828b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttacker
-  lastAttack: 
+  lastAttack: OH_Light_Attack_04
 --- !u!114 &3908938017863494270
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -218,9 +228,11 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 75
   isDead: 0
-  staminaLevel: 10
-  maxStamina: 0
-  currentStamina: 0
+  staminaLevel: 1
+  maxStamina: 100
+  currentStamina: 75
+  staminaRegenRate: 40
+  staminaRegenDelay: 1
   healthBar: {fileID: 0}
   staminaBar: {fileID: 0}
 --- !u!114 &1302656589463287655
@@ -235,7 +247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf315270d37274d39b9b7a2378942dbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.Interactable
-  radius: 0.6
+  radius: 1.2
   interactbleText: Pick Up Item
 --- !u!1 &926036079045469104
 GameObject:

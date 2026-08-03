@@ -14,6 +14,8 @@ namespace SG
         public bool a_Input;
         public bool rb_Input;
         public bool rt_Input;
+        public bool jump_Input;
+
         public bool d_Pad_Up;
         public bool d_Pad_Down;
         public bool d_Pad_Left;
@@ -64,6 +66,8 @@ namespace SG
 
                 inputActions.PlayerQuistSlots.DPadRight.performed += i => d_Pad_Right = true;
                 inputActions.PlayerQuistSlots.DPadLeft.performed += i => d_Pad_Left = true;
+
+                inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
             }
 
             inputActions.Enable();
@@ -151,5 +155,6 @@ namespace SG
                 playerInventory.ChangeLeftWeapon();
             }
         }
+
     }
 }
