@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 5711406057861113222}
   - component: {fileID: 7667935336668428450}
   - component: {fileID: 3908938017863494270}
+  - component: {fileID: 1302656589463287655}
   m_Layer: 10
   m_Name: Player
   m_TagString: Untagged
@@ -108,6 +109,7 @@ MonoBehaviour:
   mouseX: 0
   mouseY: 0
   b_Input: 0
+  a_Input: 0
   rb_Input: 0
   rt_Input: 0
   d_Pad_Up: 0
@@ -179,13 +181,14 @@ MonoBehaviour:
   leftWeapon: {fileID: 11400000, guid: ad298a3d4e74c4160b7633dc755b9e0d, type: 2}
   unarmedWeapon: {fileID: 11400000, guid: 138594e7f49b5453bbb2c083a23a9f44, type: 2}
   weaponInRightHandSlots:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: ad298a3d4e74c4160b7633dc755b9e0d, type: 2}
+  - {fileID: 11400000, guid: 855ef3c5b0f344eda93c08099e6b2d80, type: 2}
   weaponInLeftHandSlots:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: 855ef3c5b0f344eda93c08099e6b2d80, type: 2}
+  - {fileID: 11400000, guid: ad298a3d4e74c4160b7633dc755b9e0d, type: 2}
   currentRightWeaponIndex: 0
   currentLeftWeaponIndex: 0
+  weaponsInventory: []
 --- !u!114 &7667935336668428450
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,10 +214,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b88e98284a6e94f7d979035b51a201f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
-  healthLevel: 10
-  maxHealth: 0
-  currentHealth: 0
+  healthLevel: 1
+  maxHealth: 100
+  currentHealth: 75
+  isDead: 0
+  staminaLevel: 10
+  maxStamina: 0
+  currentStamina: 0
   healthBar: {fileID: 0}
+  staminaBar: {fileID: 0}
+--- !u!114 &1302656589463287655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 460875001628762327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf315270d37274d39b9b7a2378942dbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SG.Interactable
+  radius: 0.6
+  interactbleText: Pick Up Item
 --- !u!1 &926036079045469104
 GameObject:
   m_ObjectHideFlags: 0
@@ -683,6 +705,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18e74a25627784a4489c0039c645cc51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WeaponSlotManager
+  leftArmLayerName: Left Arm
+  rightArmLayerName: Right Arm
+  attackingWeapon: {fileID: 11400000, guid: ad298a3d4e74c4160b7633dc755b9e0d, type: 2}
 --- !u!4 &3085973574525079576 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f296433d6fce49b39e76baa0bf88dde, type: 3}

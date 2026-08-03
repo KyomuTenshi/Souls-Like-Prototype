@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace SG {
@@ -7,6 +8,12 @@ namespace SG {
         Animator anim;
         CameraHandler cameraHandler;
         PlayerLocomotion playerLocomotion;
+        InteractableUI interactableUI;
+        public GameObject interactableUIGameObject;
+        public GameObject itemInteractableGameObject;
+
+        [SerializeField] private float itemNotificationDuration = 2f;
+        Coroutine itemNotificationCoroutine;
 
         public bool isIntetacting;
 
@@ -27,6 +34,8 @@ namespace SG {
             inputHandler = GetComponent<InputHandler>();
             anim = GetComponentInChildren<Animator>();
             playerLocomotion = GetComponent<PlayerLocomotion>();
+
+            interactableUI = FindFirstObjectByType<InteractableUI>(FindObjectsInactive.Include);
         }
 
         void Start()
@@ -76,9 +85,6 @@ namespace SG {
 
         public void CheckForInteractableObject()
         {
-            // cameraHandler может быть null (сцена без камеры, или порядок
-            // инициализации ещё не завершился) — SphereCast с cameraHandler.ignoreLayers
-            // без проверки уронил бы NRE именно в такой сцене.
             if (cameraHandler == null)
                 return;
 
@@ -90,20 +96,88 @@ namespace SG {
 
                 if (interactableObject != null)
                 {
-                    // interactableText зарезервирован под будущий UI-подсказчик
-                    // ("E — поднять [название]") — пока не выводится никуда,
-                    // но вычисляется здесь заранее, чтобы не искать точку входа
-                    // повторно, когда дойдём до этого урока.
                     string interactableText = interactableObject.interactbleText;
+
+                    if (interactableUI != null && interactableUI.interactionText != null)
+                    {
+                        interactableUI.interactionText.text = interactableText;
+                    }
+
+                    if (interactableUIGameObject != null)
+                    {
+                        interactableUIGameObject.SetActive(true);
+                    }
 
                     if (inputHandler.a_Input)
                     {
-                        // Переиспользуем interactableObject вместо повторного
-                        // GetComponent — тот же компонент, второй вызов был лишним.
                         interactableObject.Interact(this);
                     }
                 }
             }
+            else
+            {
+                if (interactableUIGameObject != null)
+                {
+                    interactableUIGameObject.SetActive(false);
+                }
+
+                // Ручное скрытие по нажатию — быстрый способ отмахнуться от
+                // уведомления, не обязательный, раз есть таймер ниже.
+                if (itemInteractableGameObject != null && inputHandler.a_Input)
+                {
+                    if (itemNotificationCoroutine != null)
+                    {
+                        StopCoroutine(itemNotificationCoroutine);
+                        itemNotificationCoroutine = null;
+                    }
+                    itemInteractableGameObject.SetActive(false);
+                }
+            }
+        }
+
+        // Единая точка показа уведомления "подобрано: <название>" вместе с
+        // иконкой. Раньше WeaponPickUp напрямую делал GetComponent<TMP>/
+        // <RawImage> на itemInteractableGameObject — работает только если
+        // текст и картинка лежат прямо на этом объекте, а не на дочерних
+        // (обычный случай в Canvas-иерархии), и никогда не скрывалось само.
+        public void ShowItemPickupNotification(string itemName, Sprite itemIcon)
+        {
+            if (interactableUI != null)
+            {
+                if (interactableUI.itemText != null)
+                {
+                    interactableUI.itemText.text = itemName;
+                }
+
+                // itemIcon может быть не назначен на ассете оружия — тогда
+                // просто не трогаем картинку, а не роняем NRE.
+                if (interactableUI.itemImage != null && itemIcon != null)
+                {
+                    interactableUI.itemImage.texture = itemIcon.texture;
+                }
+            }
+
+            if (itemInteractableGameObject == null)
+                return;
+
+            itemInteractableGameObject.SetActive(true);
+
+            if (itemNotificationCoroutine != null)
+            {
+                StopCoroutine(itemNotificationCoroutine);
+            }
+            itemNotificationCoroutine = StartCoroutine(HideItemNotificationAfterDelay());
+        }
+
+        private IEnumerator HideItemNotificationAfterDelay()
+        {
+            yield return new WaitForSeconds(itemNotificationDuration);
+
+            if (itemInteractableGameObject != null)
+            {
+                itemInteractableGameObject.SetActive(false);
+            }
+            itemNotificationCoroutine = null;
         }
     }
 }

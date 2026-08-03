@@ -28,10 +28,12 @@ namespace SG {
 
             playerInventory.weaponsInventory.Add(weapon);
 
-            // Анимация подбора играет на ИГРОКЕ, а не на объекте оружия —
-            // откладывать уничтожение ради анимации не нужно. SetActive(false)
-            // + отложенный Destroy были избыточной комбинацией: Destroy
-            // прекрасно работает и без предварительной деактивации.
+            // Через PlayerManager, а не прямыми GetComponent<TMP>/<RawImage>
+            // на itemInteractableGameObject: работает независимо от того, на
+            // каком именно дочернем объекте лежат текст и картинка, и
+            // уведомление теперь само скрывается по таймеру.
+            playerManager.ShowItemPickupNotification(weapon.itemName, weapon.itemIcon);
+
             Destroy(gameObject);
         }
     }
