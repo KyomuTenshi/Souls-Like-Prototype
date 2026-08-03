@@ -15,6 +15,7 @@ namespace SG
         public bool rb_Input;
         public bool rt_Input;
         public bool jump_Input;
+        public bool inventory_Input;
 
         public bool d_Pad_Up;
         public bool d_Pad_Down;
@@ -24,6 +25,7 @@ namespace SG
         public bool rollFlag;
         public bool sprintFlag;
         public bool comboFlag;
+        public bool inventoryFlag;
         public float rollInputTimer;
         public bool isIntetacting;
 
@@ -33,6 +35,7 @@ namespace SG
         PlayerAttacker playerAttacker;
         PlayerInventory playerInventory;
         PlayerManager playerManager;
+        UIManager uiManager;
 
         Vector2 movementInput;
         Vector2 cameraInput;
@@ -42,6 +45,10 @@ namespace SG
             playerAttacker = GetComponent<PlayerAttacker>();
             playerInventory = GetComponent<PlayerInventory>();
             playerManager = GetComponent<PlayerManager>();
+
+            // FindFirstObjectByType вместо устаревшего FindObjectOfType —
+            // тот же смысл, без obsolete-warning (см. PlayerStats/PlayerManager).
+            uiManager = FindFirstObjectByType<UIManager>(FindObjectsInactive.Include);
         }
 
         public void OnEnable()
@@ -57,9 +64,11 @@ namespace SG
                 inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
                 // Все one-shot подписки — строго ОДИН РАЗ здесь, в OnEnable.
-                // Подписка внутри TickInput (вызывается каждый кадр из
+                // Подписка внутри Tick-методов (вызываются каждый кадр из
                 // PlayerManager.Update) добавляла бы нового подписчика каждый
-                // кадр — та же ошибка, что уже была с RB/RT/D-Pad.
+                // кадр — та же ошибка, что уже была с RB/RT/D-Pad, и в неё же
+                // наступила подписка на Inventory, которая раньше стояла
+                // внутри HandleInventoryInput().
                 inputActions.PlayerActions.RB.performed += i => rb_Input = true;
                 inputActions.PlayerActions.RT.performed += i => rt_Input = true;
                 inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
@@ -68,6 +77,7 @@ namespace SG
                 inputActions.PlayerQuistSlots.DPadLeft.performed += i => d_Pad_Left = true;
 
                 inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
+                inputActions.PlayerActions.Inventory.performed += i => { inventory_Input = true; Debug.Log("Inventory pressed"); };
             }
 
             inputActions.Enable();
@@ -84,6 +94,7 @@ namespace SG
             HandleRollInput(delta);
             HandleAttackInput(delta);
             HandleQuackSlotsInput(delta);
+            HandleInventoryInput();
         }
 
         private void MoveInput(float delta)
@@ -156,5 +167,31 @@ namespace SG
             }
         }
 
+        private void HandleInventoryInput()
+        {
+            // Флаг гасим сразу же в месте использования — как и rb_Input/
+            // rt_Input/jump_Input — иначе он останется true и откроет/закроет
+            // окно повторно в следующем кадре без нового нажатия.
+            if (inventory_Input)
+            {
+                inventory_Input = false;
+                inventoryFlag = !inventoryFlag;
+
+                if (uiManager == null)
+                {
+                    Debug.LogWarning("InputHandler: UIManager не найден в сцене — окно инвентаря не откроется.");
+                    return;
+                }
+
+                if (inventoryFlag)
+                {
+                    uiManager.OpenSelectWindow();
+                }
+                else
+                {
+                    uiManager.CloseSelectWindow();
+                }
+            }
+        }
     }
 }
