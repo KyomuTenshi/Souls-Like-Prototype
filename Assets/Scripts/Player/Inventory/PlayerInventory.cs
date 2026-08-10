@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SG {
     public class PlayerInventory : MonoBehaviour
@@ -12,8 +13,16 @@ namespace SG {
 
         public WeaponItem unarmedWeapon;
 
-        public WeaponItem[] weaponInRightHandSlots = new WeaponItem[2];
-        public WeaponItem[] weaponInLeftHandSlots = new WeaponItem[2];
+        // БЫЛО: weaponInRightHandSlots / weaponInLeftHandSlots (без "s" после
+        // weapon). EquipmentWindowUI — и все будущие уроки туториала —
+        // обращаются к weaponsInRightHandSlots / weaponsInLeftHandSlots, из-за
+        // расхождения проект не компилировался. Переименовано под туториал.
+        // FormerlySerializedAs сохраняет уже назначенные в инспекторе оружия —
+        // Unity подхватит старое сериализованное имя при первой загрузке.
+        [FormerlySerializedAs("weaponInRightHandSlots")]
+        public WeaponItem[] weaponsInRightHandSlots = new WeaponItem[2];
+        [FormerlySerializedAs("weaponInLeftHandSlots")]
+        public WeaponItem[] weaponsInLeftHandSlots = new WeaponItem[2];
 
         public int currentRightWeaponIndex = -1;
         public int currentLeftWeaponIndex = -1;
@@ -58,7 +67,7 @@ namespace SG {
         // -> ... -> unarmed -> слот 0.
         private void ChangeWeapon(bool isLeft)
         {
-            WeaponItem[] slots = isLeft ? weaponInLeftHandSlots : weaponInRightHandSlots;
+            WeaponItem[] slots = isLeft ? weaponsInLeftHandSlots : weaponsInRightHandSlots;
             int currentIndex = isLeft ? currentLeftWeaponIndex : currentRightWeaponIndex;
 
             int nextIndex = -1;

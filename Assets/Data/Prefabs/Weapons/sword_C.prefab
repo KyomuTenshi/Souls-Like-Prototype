@@ -171,3 +171,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.DamageCollider
   currentWeaponDamage: 25
+  hitStopDuration: 0.07
+  killHitStopMultiplier: 2

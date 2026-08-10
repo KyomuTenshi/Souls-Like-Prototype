@@ -23,6 +23,16 @@ namespace SG {
 
         public bool isDead;
 
+        [Header("I-Frames")]
+        // Кадры неуязвимости (уклонение). Флаг ставят/снимают Animation
+        // Event'ы EnableInvulnerability / DisableInvulnerability на клипе
+        // Rolling (методы живут в AnimatorHandler — события должны быть на
+        // объекте с Animator). Пока события не расставлены, флаг просто
+        // всегда false — поведение как раньше, ничего не ломается.
+        // Ролл без i-frames в action-игре не работает как защитный
+        // инструмент: игрок физически не может "прододживать" удары.
+        public bool isInvulnerable;
+
         public int staminaLevel = 10;
         public int maxStamina;
         public int currentStamina;
@@ -97,6 +107,14 @@ namespace SG {
         private void Update()
         {
             RegenerateStamina();
+
+            // Страховка от "вечной неуязвимости": если ролл был прерван чем-то
+            // без Disable-события (например, срыв с обрыва в Falling посреди
+            // клипа), флаг снимается, как только персонаж вышел из интеракции.
+            if (isInvulnerable && playerManager != null && !playerManager.isIntetacting)
+            {
+                isInvulnerable = false;
+            }
         }
 
         private int SetMaxHealthFromHealthLevel()
@@ -118,12 +136,23 @@ namespace SG {
             return currentStamina >= cost;
         }
 
-        public void TakeDamage(int damage)
+        // БЫЛО: void. Теперь возвращает, ПРОШЁЛ ли урон: false — удар
+        // проигнорирован (смерть или i-frames уклонения), true — урон
+        // применён. Нужно хитстопу в DamageCollider: замирать должен только
+        // реальный контакт, а не удар "сквозь" ролл. Смена void -> bool
+        // обратно совместима по исходникам: все старые вызовы
+        // playerStats.TakeDamage(x); (в т.ч. из будущих уроков туториала)
+        // компилируются как раньше — возвращаемое значение просто игнорируется.
+        public bool TakeDamage(int damage)
         {
             // После смерти урон игнорируется — иначе каждый последующий удар
             // заново запускал анимацию Dead.
             if (isDead)
-                return;
+                return false;
+
+            // Активные i-frames уклонения: урон полностью игнорируется.
+            if (isInvulnerable)
+                return false;
 
             currentHealth = currentHealth - damage;
 
@@ -152,6 +181,8 @@ namespace SG {
                 // в одном кадре игрались и BetaDamage, и Dead.
                 animatorHandler.PlayeTargetAnimation("BetaDamage", true);
             }
+
+            return true;
         }
 
         // Полное восстановление HP и стамины с обновлением баров. Зовут

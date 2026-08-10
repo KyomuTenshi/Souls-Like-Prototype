@@ -4,6 +4,7 @@ namespace SG {
     public class AnimatorHandler : MonoBehaviour
     {
         PlayerManager playerManager;
+        PlayerStats playerStats;
         public Animator anim;
         InputHandler inputHandler;
         PlayerLocomotion playerLocomotion;
@@ -31,9 +32,18 @@ namespace SG {
         [Range(0.02f, 0.3f)]
         public float comboBreakBlendTime = 0.05f;
 
+        [Header("Movement Blend")]
+        // true (NieR-feel): в blend tree идут СЫРЫЕ значения ввода — на стике
+        // скорость анимации плавно растёт с наклоном, без "ступенек".
+        // false: лестница туториала (0 / ±0.5 / ±1) — souls-снэппинг.
+        // Для клавиатуры разницы нет (WASD и так даёт 0/±1). Blend tree
+        // менять не нужно: пороги -1/-0.5/0/0.5/1 интерполируются и так.
+        [SerializeField] bool useAnalogMovementBlend = true;
+
         public void Initialize()
         {
             playerManager = GetComponentInParent<PlayerManager>();
+            playerStats = GetComponentInParent<PlayerStats>();
             anim = GetComponent<Animator>();
             inputHandler = GetComponentInParent<InputHandler>();
             playerLocomotion = GetComponentInParent<PlayerLocomotion>();
@@ -45,49 +55,55 @@ namespace SG {
 
         public void UpdateAnimatorValues(float verticalMovement, float horizontalMovement, bool isSprinting)
         {
-            #region Vertical
-            float v = 0;
+            float v;
+            float h;
 
-            if (verticalMovement > 0 && verticalMovement < 0.55f)
+            if (useAnalogMovementBlend)
             {
-                v = 0.5f;
-            } else if (verticalMovement > 0.55f)
-            {
-                v = 1;
-            } else if (verticalMovement < 0 && verticalMovement > -0.55f)
-            {
-                v = -0.5f;
-            } else if (verticalMovement < -0.55f)
-            {
-                v = -1;
-            } else
-            {
-                v = 0;
+                // Аналоговый режим: значения как есть (в пределах [-1..1]).
+                v = Mathf.Clamp(verticalMovement, -1f, 1f);
+                h = Mathf.Clamp(horizontalMovement, -1f, 1f);
             }
+            else
+            {
+                #region Vertical (лестница туториала)
+                if (verticalMovement > 0 && verticalMovement < 0.55f)
+                {
+                    v = 0.5f;
+                } else if (verticalMovement > 0.55f)
+                {
+                    v = 1;
+                } else if (verticalMovement < 0 && verticalMovement > -0.55f)
+                {
+                    v = -0.5f;
+                } else if (verticalMovement < -0.55f)
+                {
+                    v = -1;
+                } else
+                {
+                    v = 0;
+                }
+                #endregion
 
-            #endregion
-
-            #region  Horizontal
-            float h = 0;
-
-            if (horizontalMovement > 0 && horizontalMovement < 0.55f)
-            {
-                h = 0.5f;
-            } else if (horizontalMovement > 0.55f)
-            {
-                h = 1;
-            } else if (horizontalMovement < 0 && horizontalMovement > -0.55f)
-            {
-                h = -0.5f;
-            } else if (horizontalMovement < -0.55f)
-            {
-                h = -1;
-            } else
-            {
-                h = 0;
+                #region Horizontal (лестница туториала)
+                if (horizontalMovement > 0 && horizontalMovement < 0.55f)
+                {
+                    h = 0.5f;
+                } else if (horizontalMovement > 0.55f)
+                {
+                    h = 1;
+                } else if (horizontalMovement < 0 && horizontalMovement > -0.55f)
+                {
+                    h = -0.5f;
+                } else if (horizontalMovement < -0.55f)
+                {
+                    h = -1;
+                } else
+                {
+                    h = 0;
+                }
+                #endregion
             }
-
-            #endregion
 
             if (isSprinting)
             {
@@ -138,6 +154,26 @@ namespace SG {
         {
             anim.SetBool(CanDoComboHash, false);
         }
+
+        // --- I-Frames уклонения -------------------------------------------
+        // Вызываются Animation Event'ами на клипе Rolling (события обязаны
+        // жить на объекте с Animator — поэтому методы здесь, а флаг в
+        // PlayerStats). Ставь EnableInvulnerability в начале клипа (~5-10%),
+        // DisableInvulnerability — ближе к концу (~60-70%): классическое окно
+        // неуязвимости уклонения. Пока события не расставлены — методы просто
+        // не вызываются, ничего не меняется.
+        public void EnableInvulnerability()
+        {
+            if (playerStats != null)
+                playerStats.isInvulnerable = true;
+        }
+
+        public void DisableInvulnerability()
+        {
+            if (playerStats != null)
+                playerStats.isInvulnerable = false;
+        }
+
         private void OnAnimatorMove()
         {
             if (playerManager.isIntetacting == false)
@@ -151,6 +187,21 @@ namespace SG {
 
             Rigidbody rb = playerLocomotion.rb;
             rb.linearDamping = 0;
+
+            // Мёртвый персонаж: авто-возврат управления по normalizedTime
+            // ЗАПРЕЩЁН. Без этого клип "Dead" доигрывал до конца, ветка ниже
+            // снимала isInteracting — и трупом можно было бегать до
+            // возрождения (или вечно, если PlayerRespawn не повешен).
+            // Управление вернёт PlayerRespawn через PlayeTargetAnimation
+            // ("Empty", isInteracting: false). Вертикаль оставляем гравитации,
+            // горизонталь глушим — труп не должен скользить.
+            if (playerStats != null && playerStats.isDead)
+            {
+                Vector3 deadVelocity = Vector3.zero;
+                deadVelocity.y = rb.linearVelocity.y;
+                rb.linearVelocity = deadVelocity;
+                return;
+            }
 
             // Логика ниже разветвляется по типу интеракции: только Roll
             // получает ручной разгон/торможение; воздушные состояния

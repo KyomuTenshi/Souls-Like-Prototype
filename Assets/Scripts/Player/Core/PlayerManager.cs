@@ -70,7 +70,16 @@ namespace SG {
             if (cameraHandler != null)
             {
                 cameraHandler.FollowTarget(delta);
-                cameraHandler.HandleCameraRotation(delta, inputHandler.mouseX, inputHandler.mouseY);
+
+                // При открытом инвентаре камеру мышью не крутим: курсор в
+                // этот момент разлочен (см. UIManager.OpenSelectWindow) и
+                // нужен для кликов по UI — его путь к кнопке вращал бы
+                // камеру за меню. Слежение (FollowTarget) оставляем:
+                // с открытым меню можно ходить, камера должна догонять.
+                if (!inputHandler.inventoryFlag)
+                {
+                    cameraHandler.HandleCameraRotation(delta, inputHandler.mouseX, inputHandler.mouseY);
+                }
             }
 
             inputHandler.rollFlag = false;

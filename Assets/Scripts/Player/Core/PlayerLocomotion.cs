@@ -30,6 +30,9 @@ namespace SG
         [SerializeField] float rotationSpeed = 10;
         [SerializeField] float rollSpeed = 6;
         [SerializeField] float sprintSpeed = 7;
+        // Теперь это УСКОРЕНИЕ падения в м/с² (см. HandleFalling). 45 ≈
+        // прежняя средняя скорость набора при 60 FPS, но теперь одинаково
+        // на любом фреймрейте. Ощущается иначе — подкрути под себя.
         [SerializeField] float fallingSpeed = 45;
 
         [Header("Jump Stats")]
@@ -45,6 +48,15 @@ namespace SG
         // Имя состояния фазы 1. По умолчанию "Jump" — как в туториале,
         // чтобы ничего не переименовывать в контроллере.
         [SerializeField] string jumpStartAnimation = "Jump";
+        // БЫЛО: magic number 0.5f прямо в HandleFalling. Порог решает, какая
+        // анимация фазы 3 играет: дольше него — полноценный "Land", короче —
+        // мгновенный "Empty". Раньше жёсткая привязка к 0.5с молча ломалась
+        // при увеличении fallingSpeed: чем быстрее падение, тем меньше
+        // суммарное время в воздухе, и "Land" переставал успевать включиться
+        // вообще. Теперь порог настраивается отдельно от скорости падения —
+        // подгоняй его под конкретную пару jumpForce/fallingSpeed, а не
+        // наоборот.
+        [SerializeField] float airTimeForLandAnimation = 0.5f;
 
         [Header("Stamina Costs")]
         // Гейт в духе souls: действие доступно, пока стамина > 0, а стоимость
@@ -52,6 +64,25 @@ namespace SG
         [SerializeField] int rollStaminaCost = 15;
         [SerializeField] int jumpStaminaCost = 10;
         [SerializeField] float sprintStaminaCostPerSecond = 8f;
+
+        [Header("NieR Dodge — Attack Cancel")]
+        // Ролл может ОТМЕНЯТЬ атаку — ядро ощущения NieR/DMC: уклонение
+        // важнее завершения замаха. Работает по ТЕГУ состояния: в Animator
+        // Controller у состояний атак в поле Tag должно стоять "Attack"
+        // (выдели состояние -> Inspector -> поле Tag, регистр важен).
+        // Состояние без тега отменить нельзя — поэтому ролл не отменяет сам
+        // себя, Land, Falling или хитстан. Пометишь тегом Attack другие
+        // состояния (например, BetaDamage) — кансел распространится и на
+        // них: правило целиком в руках Animator'а, код менять не нужно.
+        [SerializeField] bool allowAttackDodgeCancel = true;
+        // Доля клипа атаки (0..1), ДО которой кансел запрещён: самое начало
+        // замаха доигрывает, чтобы отмена не выглядела как "атаки не было".
+        // Открытое комбо-окно (canDoCombo) разрешает кансел независимо от
+        // порога — оно по смыслу и есть окно отмены.
+        [Range(0f, 1f)]
+        [SerializeField] float attackDodgeCancelTime = 0.25f;
+
+        WeaponSlotManager weaponSlotManager;
 
         float jumpGraceTimer;
 
@@ -67,6 +98,8 @@ namespace SG
             rb = GetComponent<Rigidbody>();
             inputHandler = GetComponent<InputHandler>();
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
+            // Нужен канселу атак: при обрыве замаха закрываем хитбоксы оружия.
+            weaponSlotManager = GetComponentInChildren<WeaponSlotManager>();
             cameraObject = Camera.main.transform;
             myTransform = transform;
             animatorHandler.Initialize();
@@ -91,8 +124,10 @@ namespace SG
             targetDir = cameraObject.forward * inputHandler.vertical;
             targetDir += cameraObject.right * inputHandler.horizontal;
 
-            targetDir.Normalize();
+            // Сначала прижимаем к горизонту, ПОТОМ нормализуем (см. тот же
+            // фикс в HandleMovement).
             targetDir.y = 0;
+            targetDir.Normalize();
 
             if (targetDir == Vector3.zero)
                 targetDir = myTransform.forward;
@@ -115,8 +150,14 @@ namespace SG
 
             moveDirection = cameraObject.forward * inputHandler.vertical;
             moveDirection += cameraObject.right * inputHandler.horizontal;
-            moveDirection.Normalize();
+            // БЫЛО: Normalize(), потом y = 0. Камера смотрит сверху вниз, её
+            // forward наклонён — после нормализации зануление y ОБРЕЗАЛО
+            // длину вектора, и фактическая скорость бега зависела от наклона
+            // камеры (чем круче вниз смотришь, тем медленнее бежишь).
+            // Правильный порядок: сначала прижать к горизонту, потом
+            // нормализовать до единичной длины.
             moveDirection.y = 0;
+            moveDirection.Normalize();
 
             float speed = movementSpeed;
 
@@ -158,52 +199,97 @@ namespace SG
 
         public void HandleRollingAndSprinting(float delta)
         {
-            if (animatorHandler.anim.GetBool("isInteracting"))
+            if (!inputHandler.rollFlag)
                 return;
 
-            if (inputHandler.rollFlag)
+            // БЫЛО: при isIntetacting — выход всегда, и ролл во время атаки
+            // пропадал. Теперь атаку можно ОТМЕНИТЬ роллом (проверка ниже).
+            // Если отменять пока нельзя — просто выходим, НЕ трогая буфер:
+            // InputHandler поднимет rollFlag и в следующем кадре, попытка
+            // повторится сама, пока живо окно буфера.
+            bool isCancellingAttack = playerManager.isIntetacting;
+
+            if (isCancellingAttack && !CanCancelAttackIntoRoll())
+                return;
+
+            // Дальше ролл точно принят к исполнению — гасим буфер. Даже если
+            // ниже его съест стамина-гейт: как в souls, ввод без ресурса
+            // пропадает, а не висит в очереди.
+            inputHandler.ConsumeRollBuffer();
+
+            // Souls-режим: выдохся — ролла нет (действие доступно, пока
+            // стамина строго больше нуля). Action-режим (NieR-style):
+            // уклонение всегда доступно — это ядро боевого ритма NieR,
+            // его нельзя отбирать у игрока из-за ресурса.
+            if (playerStats != null && !playerStats.IsActionMode && !playerStats.HasStamina())
+                return;
+
+            moveDirection = cameraObject.forward * inputHandler.vertical;
+            moveDirection += cameraObject.right * inputHandler.horizontal;
+
+            if (inputHandler.moveAmount > 0)
             {
-                // Флаг гасим в месте использования — порядок Update() между
-                // скриптами Unity не гарантирован.
-                inputHandler.rollFlag = false;
+                moveDirection.y = 0;
 
-                // Souls-режим: выдохся — ролла нет (действие доступно, пока
-                // стамина строго больше нуля). Action-режим (NieR-style):
-                // уклонение всегда доступно — это ядро боевого ритма NieR,
-                // его нельзя отбирать у игрока из-за ресурса.
-                if (playerStats != null && !playerStats.IsActionMode && !playerStats.HasStamina())
-                    return;
-
-                moveDirection = cameraObject.forward * inputHandler.vertical;
-                moveDirection += cameraObject.right * inputHandler.horizontal;
-
-                if (inputHandler.moveAmount > 0)
+                // Защита LookRotation от нулевого вектора.
+                if (moveDirection.sqrMagnitude > 0.0001f)
                 {
-                    moveDirection.y = 0;
-
-                    // Защита LookRotation от нулевого вектора.
-                    if (moveDirection.sqrMagnitude > 0.0001f)
+                    if (isCancellingAttack)
                     {
-                        animatorHandler.PlayeTargetAnimation("Rolling", true);
-                        Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
-                        myTransform.rotation = rollRotation;
+                        // Обрываем атаку аккуратно:
+                        // 1) захлопываем комбо-окно, чтобы буферизованный RB
+                        //    не продолжил цепочку прямо ИЗ ролла;
+                        // 2) закрываем хитбоксы оружия — Close-событие в
+                        //    конце клипа атаки после CrossFade может уже не
+                        //    сработать, и меч "бил" бы сквозь весь ролл.
+                        animatorHandler.DisableConbo();
 
-                        // Списание — только в Souls-режиме (в Action ролл
-                        // бесплатный, см. гейт выше).
-                        if (playerStats != null && !playerStats.IsActionMode)
+                        if (weaponSlotManager != null)
                         {
-                            playerStats.TakeStaminaDamage(rollStaminaCost);
+                            weaponSlotManager.CloseLeftHandDamageCollider();
+                            weaponSlotManager.CloseRightHandDamageCollider();
                         }
                     }
-                }
-                else
-                {
-                    // BackStep: анимации пока нет в проекте. Включается одной
-                    // строкой, когда клип появится в Animator Controller.
-                    // animatorHandler.PlayeTargetAnimation("Backstep", true);
-                    // Не забудь тогда добавить и стамина-кост, как у ролла выше.
+
+                    animatorHandler.PlayeTargetAnimation("Rolling", true);
+                    Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
+                    myTransform.rotation = rollRotation;
+
+                    // Списание — только в Souls-режиме (в Action ролл
+                    // бесплатный, см. гейт выше).
+                    if (playerStats != null && !playerStats.IsActionMode)
+                    {
+                        playerStats.TakeStaminaDamage(rollStaminaCost);
+                    }
                 }
             }
+            else
+            {
+                // BackStep: анимации пока нет в проекте. Включается одной
+                // строкой, когда клип появится в Animator Controller.
+                // animatorHandler.PlayeTargetAnimation("Backstep", true);
+                // Не забудь тогда добавить и стамина-кост, как у ролла выше.
+            }
+        }
+
+        // Можно ли прямо сейчас оборвать текущую интеракцию роллом.
+        // Разрешаем только для состояний с тегом "Attack" на слое 0, и
+        // только после attackDodgeCancelTime их длины — ЛИБО когда открыто
+        // комбо-окно (тогда кансел мгновенный).
+        private bool CanCancelAttackIntoRoll()
+        {
+            if (!allowAttackDodgeCancel)
+                return false;
+
+            if (playerManager.canDoConbo)
+                return true;
+
+            AnimatorStateInfo stateInfo = animatorHandler.anim.GetCurrentAnimatorStateInfo(0);
+
+            if (!stateInfo.IsTag("Attack"))
+                return false;
+
+            return stateInfo.normalizedTime >= attackDodgeCancelTime;
         }
 
         public void HandleFalling(float delta, Vector3 moveDir)
@@ -224,8 +310,22 @@ namespace SG
 
             if (playerManager.isInAir)
             {
-                rb.AddForce(-Vector3.up * fallingSpeed);
-                rb.AddForce(moveDir * fallingSpeed / 10f);
+                // БЫЛО: rb.AddForce(...) каждый Update. Update тикает чаще
+                // FixedUpdate, и каждая копия силы попадала в следующий
+                // физический шаг: на 144 FPS игрок падал ЗАМЕТНО быстрее, чем
+                // на 60. Теперь пишем скорость напрямую с масштабом на delta —
+                // ускорение падения одинаково на любом фреймрейте.
+                rb.linearVelocity += Vector3.down * fallingSpeed * delta;
+
+                // Воздушный контроль (лёгкий снос в сторону ввода) — по той же
+                // схеме. Направление нормализуем: раньше сюда прилетал вектор,
+                // уже умноженный на скорость бега, и сила зависела от неё.
+                Vector3 airDirection = moveDir;
+                airDirection.y = 0;
+                if (airDirection.sqrMagnitude > 0.0001f)
+                {
+                    rb.linearVelocity += airDirection.normalized * (fallingSpeed / 10f) * delta;
+                }
             }
 
             Vector3 dir = moveDir;
@@ -257,7 +357,7 @@ namespace SG
                 {
                     // ФАЗА 3 прыжка/падения: долгий полёт — жёсткое
                     // приземление (Land), короткий — мгновенный выход (Empty).
-                    if (inAirTimer > 0.5f)
+                    if (inAirTimer > airTimeForLandAnimation)
                     {
                         Debug.Log("You were in the air for " + inAirTimer);
                         animatorHandler.PlayeTargetAnimation("Land", true);
@@ -301,7 +401,11 @@ namespace SG
             {
                 if (playerManager.isIntetacting || inputHandler.moveAmount > 0)
                 {
-                    myTransform.position = Vector3.Lerp(myTransform.position, targetPosition, Time.deltaTime / 0.1f);
+                    // Clamp01: на просадке FPS (delta > 0.1с) фактор Lerp
+                    // вылетал за 1 — позицию ПЕРЕбрасывало за targetPosition,
+                    // и персонаж дёргался на рельефе.
+                    float snapFactor = Mathf.Clamp01(Time.deltaTime / 0.1f);
+                    myTransform.position = Vector3.Lerp(myTransform.position, targetPosition, snapFactor);
                 }
                 else
                 {
@@ -361,8 +465,13 @@ namespace SG
                 inAirTimer = 0;
                 jumpGraceTimer = jumpAscendGraceTime;
 
+                // Спринт-прыжок сохраняет скорость спринта: раньше горизонталь
+                // всегда бралась от movementSpeed, и разбег "съедался" в
+                // момент отрыва — прыжок с разбега ощущался как с места.
+                float jumpHorizontalSpeed = playerManager.isSprinting ? sprintSpeed : movementSpeed;
+
                 Vector3 jumpVelocity = inputHandler.moveAmount > 0
-                    ? moveDirection * movementSpeed
+                    ? moveDirection * jumpHorizontalSpeed
                     : Vector3.zero;
                 jumpVelocity.y = jumpForce;
                 rb.linearVelocity = jumpVelocity;

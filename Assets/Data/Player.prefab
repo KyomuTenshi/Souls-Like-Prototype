@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 7667935336668428450}
   - component: {fileID: 3908938017863494270}
   - component: {fileID: 1302656589463287655}
+  - component: {fileID: 1073854130076656301}
   m_Layer: 10
   m_Name: Player
   m_TagString: Untagged
@@ -113,6 +114,7 @@ MonoBehaviour:
   rb_Input: 0
   rt_Input: 0
   jump_Input: 0
+  inventory_Input: 0
   d_Pad_Up: 0
   d_Pad_Down: 0
   d_Pad_Left: 0
@@ -120,6 +122,7 @@ MonoBehaviour:
   rollFlag: 0
   sprintFlag: 0
   comboFlag: 0
+  inventoryFlag: 0
   rollInputTimer: 0
   isIntetacting: 0
   rollInputThreshold: 0.5
@@ -224,6 +227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b88e98284a6e94f7d979035b51a201f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
+  staminaMode: 1
   healthLevel: 1
   maxHealth: 100
   currentHealth: 75
@@ -249,6 +253,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SG.Interactable
   radius: 1.2
   interactbleText: Pick Up Item
+--- !u!114 &1073854130076656301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 460875001628762327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d906622224958435586a68cd8897ffb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerRespawn
+  respawnDelay: 3
+  respawnAnimation: Empty
 --- !u!1 &926036079045469104
 GameObject:
   m_ObjectHideFlags: 0

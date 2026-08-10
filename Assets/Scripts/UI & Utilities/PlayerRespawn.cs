@@ -95,6 +95,10 @@ namespace SG {
             if (playerStats != null)
             {
                 playerStats.isDead = false;
+                // Страховка: если смерть застала персонажа с активными
+                // i-frames (умер от чего-то, что их игнорирует, — например,
+                // от будущей kill-zone), флаг не должен переехать в новую жизнь.
+                playerStats.isInvulnerable = false;
                 playerStats.RestoreHealthAndStamina();
             }
 

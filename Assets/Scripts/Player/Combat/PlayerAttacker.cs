@@ -10,6 +10,15 @@ namespace SG {
         PlayerStats playerStats;
         public string lastAttack;
 
+        [Header("Attack Orientation (NieR-style)")]
+        // Перед атакой персонаж мгновенно доворачивается в сторону текущего
+        // ввода движения (камера-относительно). Без этого атака уходила туда,
+        // куда персонаж СМОТРЕЛ до нажатия — в NieR/Souls удар всегда идёт
+        // туда, куда игрок держит стик в момент нажатия. Работает и для
+        // каждого шага комбо (redirect цепочки). Ввода нет — бьём по
+        // текущему направлению взгляда, как раньше.
+        [SerializeField] bool orientAttacksToInput = true;
+
         private void Awake()
         {
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
@@ -44,6 +53,31 @@ namespace SG {
             return playerStats == null || playerStats.HasStamina();
         }
 
+        // Доворот в сторону ввода. Используем корень CameraHandler'а
+        // (он вращается только по yaw), а не Camera.main — у самой камеры
+        // forward наклонён по pitch и загрязнял бы направление.
+        private void OrientTowardsInputDirection()
+        {
+            if (!orientAttacksToInput)
+                return;
+
+            if (inputHandler == null || inputHandler.moveAmount <= 0.1f)
+                return;
+
+            CameraHandler cameraHandler = CameraHandler.singleton;
+            if (cameraHandler == null)
+                return;
+
+            Vector3 direction = cameraHandler.transform.forward * inputHandler.vertical;
+            direction += cameraHandler.transform.right * inputHandler.horizontal;
+            direction.y = 0f;
+
+            if (direction.sqrMagnitude < 0.0001f)
+                return;
+
+            transform.rotation = Quaternion.LookRotation(direction.normalized);
+        }
+
         public void HandleWeaponCombo(WeaponItem weapon)
         {
             if (weapon == null)
@@ -58,19 +92,66 @@ namespace SG {
                 
                 if (lastAttack == weapon.OH_Light_Attack_1)
                 {
+                    OrientTowardsInputDirection();
                     animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_2, true);
                     lastAttack = weapon.OH_Light_Attack_2;
                 }
                 else if (lastAttack == weapon.OH_Light_Attack_2)
                 {
+                    OrientTowardsInputDirection();
                     animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_3, true);
                     lastAttack = weapon.OH_Light_Attack_3;
                 }
                 else if (lastAttack == weapon.OH_Light_Attack_3)
                 {
+                    OrientTowardsInputDirection();
                     animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_4, true);
                     lastAttack = weapon.OH_Light_Attack_4;
                 }
+                else if (!string.IsNullOrEmpty(weapon.OH_Heavy_Attack_1) && lastAttack == weapon.OH_Heavy_Attack_1)
+                {
+                    // НОВОЕ (Фаза 3): возврат из тяжёлого финишера обратно в
+                    // лёгкую цепочку — строки вида light-heavy-light, как в
+                    // NieR. Ветка СПИТ, пока на клипе тяжёлой атаки нет
+                    // событий EnableCombo/ComboWindowClosed (комбо-окно из
+                    // тяжёлой просто не открывается). Расставишь события —
+                    // строка заработает без единой правки кода.
+                    OrientTowardsInputDirection();
+                    animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_1, true);
+                    lastAttack = weapon.OH_Light_Attack_1;
+                }
+            }
+        }
+
+        // НОВОЕ (Фаза 3). Тяжёлый ФИНИШЕР из комбо-окна: RT посреди лёгкой
+        // цепочки ветвит её в OH_Heavy_Attack_1 сразу, не дожидаясь конца
+        // всех лёгких ударов. Зовёт InputHandler.HandleAttackInput по той же
+        // схеме, что HandleWeaponCombo (comboFlag поднят на время вызова).
+        // Стамина: как у обычной тяжёлой — гейт в обоих режимах, списание
+        // сделает Animation Event DrainStaminaHeavyAttack на клипе.
+        public void HandleHeavyComboFinisher(WeaponItem weapon)
+        {
+            if (weapon == null)
+                return;
+
+            if (!HasStaminaForHeavyAttack())
+                return;
+
+            if (string.IsNullOrEmpty(weapon.OH_Heavy_Attack_1))
+            {
+                Debug.LogWarning("OH_Heavy_Attack_1 не задан на оружии " + weapon.itemName);
+                return;
+            }
+
+            if (inputHandler.comboFlag)
+            {
+                animatorHandler.DisableConbo();
+
+                OrientTowardsInputDirection();
+
+                weaponSlotManager.attackingWeapon = weapon;
+                animatorHandler.PlayeTargetAnimation(weapon.OH_Heavy_Attack_1, true);
+                lastAttack = weapon.OH_Heavy_Attack_1;
             }
         }
 
@@ -97,6 +178,8 @@ namespace SG {
                 return;
             }
 
+            OrientTowardsInputDirection();
+
             weaponSlotManager.attackingWeapon = weapon;
             animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_1, true);
             lastAttack = weapon.OH_Light_Attack_1;
@@ -121,6 +204,8 @@ namespace SG {
                 Debug.LogWarning("OH_Heavy_Attack_1 не задан на оружии " + weapon.itemName);
                 return;
             }
+
+            OrientTowardsInputDirection();
 
             weaponSlotManager.attackingWeapon = weapon;
             animatorHandler.PlayeTargetAnimation(weapon.OH_Heavy_Attack_1, true);

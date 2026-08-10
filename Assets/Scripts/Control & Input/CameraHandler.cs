@@ -15,9 +15,24 @@ namespace SG
         public static CameraHandler singleton;
 
         [Header("Camera Speeds")]
+        // lookSpeed/pivotSpeed — скорости для АНАЛОГОВОГО ввода (стик
+        // геймпада): значение [-1..1] * скорость * delta = градусы в секунду.
+        // Сейчас в PlayerControls.inputactions геймпад не привязан вообще —
+        // поля лежат готовыми на будущее, мышь их больше не использует.
         public float lookSpeed = 100f;
         public float pivotSpeed = 100f;
         public float followSpeed = 0.1f;
+
+        [Header("Mouse Sensitivity")]
+        // БЫЛО: mouseX * lookSpeed * delta. Камера привязана к <Mouse>/delta —
+        // это уже "пиксели С ПРОШЛОГО КАДРА", величина сама по себе per-frame.
+        // Домножение на deltaTime делало чувствительность зависимой от FPS:
+        // одно и то же движение мыши на 120 FPS поворачивало камеру вдвое
+        // слабее, чем на 60, а при просадках кадра сенса "плавала".
+        // Для мыши правильный масштаб: пиксели * сенса, БЕЗ delta.
+        // Подкрути значения под свою мышь/DPI.
+        [SerializeField] private float mouseLookSensitivity = 0.2f;
+        [SerializeField] private float mousePivotSensitivity = 0.15f;
 
         private float targetPosition;
         private float defaultPosition;
@@ -72,10 +87,13 @@ namespace SG
             HandleCameraCollisions(delta);
         }
 
+        // delta оставлен в сигнатуре для совместимости вызова из PlayerManager
+        // и на будущее: стик геймпада (когда появится в биндингах)
+        // масштабируется именно на delta, в отличие от мыши.
         public void HandleCameraRotation(float delta, float mouseXInput, float mouseYInput)
         {
-            lookAngle += mouseXInput * lookSpeed * delta;
-            pivotAngle -= mouseYInput * pivotSpeed * delta;
+            lookAngle += mouseXInput * mouseLookSensitivity;
+            pivotAngle -= mouseYInput * mousePivotSensitivity;
 
             pivotAngle = Mathf.Clamp(pivotAngle, minimumPivot, maximumPivot);
 

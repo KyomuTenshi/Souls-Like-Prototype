@@ -27,9 +27,31 @@ namespace SG
         public bool comboFlag;
         public bool inventoryFlag;
         public float rollInputTimer;
-        public bool isIntetacting;
 
         [SerializeField] private float rollInputThreshold = 0.5f;
+
+        [Header("Attack Input Buffer")]
+        // Окно буфера атак (сек). Нажатие атаки во время другой анимации
+        // (ролл, приземление, чужая атака вне комбо-окна) раньше ПРОПАДАЛО:
+        // rb_Input гасился, HandleLightAttack утыкался в isIntetacting — и
+        // всё. Игрок жмёт кнопку чуть раньше времени -> ощущение "съеденного"
+        // ввода. Теперь нажатие запоминается и исполняется, как только это
+        // становится возможно (открылось комбо-окно / кончилась интеракция).
+        // Это стандарт отзывчивого action-комбата (NieR/DMC/Souls так делают).
+        [SerializeField] private float attackBufferWindow = 0.4f;
+        float lightAttackBufferTimer;
+        float heavyAttackBufferTimer;
+
+        [Header("Roll Input Buffer (NieR dodge)")]
+        // Буфер уклонения — той же природы, что буфер атак выше. Раньше тап
+        // ролла во время атаки/приземления пропадал: rollFlag выставлялся на
+        // один кадр, HandleRollingAndSprinting утыкался в isIntetacting, а
+        // LateUpdate стирал флаг. Теперь нажатие живёт rollBufferWindow
+        // секунд и держит rollFlag поднятым, пока PlayerLocomotion не сможет
+        // его исполнить — в том числе КАНСЕЛОМ атаки (см. PlayerLocomotion).
+        // Исполнитель гасит буфер через ConsumeRollBuffer().
+        [SerializeField] private float rollBufferWindow = 0.35f;
+        float rollBufferTimer;
 
         PlayerControls inputActions;
         PlayerAttacker playerAttacker;
@@ -90,11 +112,38 @@ namespace SG
 
         public void TickInput(float delta)
         {
+            // Инвентарь обрабатываем ПЕРВЫМ (раньше был последним): открытие
+            // меню должно заглушить боевой ввод в этом же кадре, а закрытие —
+            // вернуть его без задержки в кадр.
+            HandleInventoryInput();
+
             MoveInput(delta);
+
+            // Пока открыто меню, геймплейный ввод глотаем: раньше E/R/Shift/
+            // Space/X били, роллили и прыгали "за меню", а путь мыши к кнопке
+            // крутил камеру (гейт камеры — в PlayerManager.LateUpdate).
+            // Движение (WASD) оставляем — как в souls-играх, ходить с
+            // открытым меню можно.
+            if (inventoryFlag)
+            {
+                rb_Input = false;
+                rt_Input = false;
+                jump_Input = false;
+                a_Input = false;
+                d_Pad_Left = false;
+                d_Pad_Right = false;
+                lightAttackBufferTimer = 0f;
+                heavyAttackBufferTimer = 0f;
+                rollBufferTimer = 0f;
+                rollInputTimer = 0f;
+                rollFlag = false;
+                sprintFlag = false;
+                return;
+            }
+
             HandleRollInput(delta);
             HandleAttackInput(delta);
             HandleQuackSlotsInput(delta);
-            HandleInventoryInput();
         }
 
         private void MoveInput(float delta)
@@ -121,35 +170,106 @@ namespace SG
                 if (rollInputTimer > 0 && rollInputTimer < rollInputThreshold)
                 {
                     sprintFlag = false;
-                    rollFlag = true;
+                    // БЫЛО: rollFlag = true напрямую (жил один кадр до
+                    // LateUpdate). Теперь тап только взводит буфер —
+                    // исполнение ниже.
+                    rollBufferTimer = rollBufferWindow;
                 }
 
                 rollInputTimer = 0;
             }
+
+            // Пока буфер жив, каждый кадр поднимаем rollFlag заново
+            // (PlayerManager.LateUpdate его стирает — это ок, буфер
+            // переживает стирание и попытка повторяется). Если ролл возможен
+            // прямо сейчас, он выйдет в этот же кадр — прежнее мгновенное
+            // поведение полностью сохранено.
+            if (rollBufferTimer > 0f)
+            {
+                rollBufferTimer -= delta;
+                rollFlag = true;
+            }
+        }
+
+        // Зовёт PlayerLocomotion в момент, когда ролл реально принят к
+        // исполнению: без этого буфер поднимал бы rollFlag ещё несколько
+        // кадров после старта ролла.
+        public void ConsumeRollBuffer()
+        {
+            rollBufferTimer = 0f;
+            rollFlag = false;
         }
 
         private void HandleAttackInput(float delta)
         {
+            // Нажатие только взводит таймер буфера — исполнение ниже.
+            // Если персонаж свободен, атака выйдет в этот же кадр, т.е.
+            // прежнее мгновенное поведение полностью сохраняется.
             if (rb_Input)
             {
                 rb_Input = false;
+                lightAttackBufferTimer = attackBufferWindow;
+            }
+
+            if (rt_Input)
+            {
+                rt_Input = false;
+                heavyAttackBufferTimer = attackBufferWindow;
+            }
+
+            // Не даём ДВУМ атакам выйти в один кадр: playerManager.isIntetacting
+            // и canDoConbo кэшируются в начале кадра (PlayerManager.Update) и
+            // не видят атаку, запущенную строчкой выше. Без guard'а RB+RT,
+            // зажатые одновременно, запускали два CrossFade подряд — второй
+            // молча перетирал первый. Теперь лёгкая имеет приоритет в этом
+            // кадре, а тяжёлая остаётся в буфере и выйдет в свой момент.
+            bool attackExecutedThisFrame = false;
+
+            // Лёгкая атака / комбо. Комбо-окно проверяем первым: если оно
+            // открыто, буферизованное нажатие продолжает цепочку.
+            if (lightAttackBufferTimer > 0f)
+            {
+                lightAttackBufferTimer -= delta;
 
                 if (playerManager.canDoConbo)
                 {
                     comboFlag = true;
                     playerAttacker.HandleWeaponCombo(playerInventory.rightWeapon);
                     comboFlag = false;
+                    lightAttackBufferTimer = 0f;
+                    attackExecutedThisFrame = true;
                 }
-                else
+                else if (!playerManager.isIntetacting)
                 {
                     playerAttacker.HandleLightAttack(playerInventory.rightWeapon);
+                    lightAttackBufferTimer = 0f;
+                    attackExecutedThisFrame = true;
                 }
             }
 
-            if (rt_Input)
+            // Тяжёлая атака. НОВОЕ (Фаза 3): в комбо-окне RT больше не ждёт
+            // конца всей цепочки, а ВЕТВИТ её тяжёлым финишером — строки
+            // вида лёгкая-лёгкая-тяжёлая, как в NieR/DMC. Вне комбо-окна —
+            // прежнее поведение: ждёт конца текущей интеракции.
+            if (heavyAttackBufferTimer > 0f)
             {
-                rt_Input = false;
-                playerAttacker.HandleHeavytAttack(playerInventory.rightWeapon);
+                heavyAttackBufferTimer -= delta;
+
+                if (!attackExecutedThisFrame)
+                {
+                    if (playerManager.canDoConbo)
+                    {
+                        comboFlag = true;
+                        playerAttacker.HandleHeavyComboFinisher(playerInventory.rightWeapon);
+                        comboFlag = false;
+                        heavyAttackBufferTimer = 0f;
+                    }
+                    else if (!playerManager.isIntetacting)
+                    {
+                        playerAttacker.HandleHeavytAttack(playerInventory.rightWeapon);
+                        heavyAttackBufferTimer = 0f;
+                    }
+                }
             }
         }
 

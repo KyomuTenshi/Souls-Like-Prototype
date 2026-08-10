@@ -67,6 +67,14 @@ namespace SG {
                 leftHandSlot.LoadWeaponModel(weaponItem);
                 LoadLeftHandDamageCollider();
 
+                // Урон оружия -> его хитбокс. Раньше эта связка отсутствовала:
+                // DamageCollider всегда бил своей константой (25), и поле
+                // baseDamage на оружии было бы мёртвым грузом.
+                if (leftHandDamageCollider != null && weaponItem != null)
+                {
+                    leftHandDamageCollider.currentWeaponDamage = weaponItem.baseDamage;
+                }
+
                 #region Handle Weapon Idle Animations
                 if (weaponItem != null)
                 {
@@ -80,6 +88,11 @@ namespace SG {
             {
                 rightHandSlot.LoadWeaponModel(weaponItem);
                 LoadRightHandDamageCollider();
+
+                if (rightHandDamageCollider != null && weaponItem != null)
+                {
+                    rightHandDamageCollider.currentWeaponDamage = weaponItem.baseDamage;
+                }
 
                 #region Handle Weapon Idle Animations
                 if (weaponItem != null)

@@ -31,13 +31,19 @@ namespace SG {
             return maxHealth;
         }
 
-        public void TakeDamage(int damage)
+        // БЫЛО: void. Теперь возвращает, ПРОШЁЛ ли урон (false — цель уже
+        // мертва). Нужно хитстопу в DamageCollider: удар по трупу не должен
+        // замораживать игру, а по isDead после вызова DamageCollider решает,
+        // сыграть ли удлинённый kill-хитстоп. Смена void -> bool обратно
+        // совместима по исходникам — старые вызовы вида
+        // enemyStats.TakeDamage(x); компилируются без изменений.
+        public bool TakeDamage(int damage)
         {
             // Мёртвый враг больше не реагирует на удары: без этой проверки
             // каждый удар по трупу заново проигрывал CrossFade("Dead") и
             // труп "дёргался", а currentHealth уходил в минус.
             if (isDead)
-                return;
+                return false;
 
             currentHealth = currentHealth - damage;
 
@@ -56,6 +62,8 @@ namespace SG {
                 anim.SetBool("isInteracting", true);
                 anim.CrossFade("BetaDamage", 0.2f);
             }
+
+            return true;
         }
     }
 }
