@@ -154,6 +154,12 @@ namespace SG {
             if (playerStats == null || attackingWeapon == null)
                 return;
 
+            // Action-режим (NieR-style): лёгкие атаки бесплатны. Метод и
+            // Animation Event'ы в клипах НЕ удаляем — при переключении
+            // обратно в Souls всё снова списывается, как в туториале.
+            if (playerStats.IsActionMode)
+                return;
+
             playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.lightAttackMultiplier));
         }
 

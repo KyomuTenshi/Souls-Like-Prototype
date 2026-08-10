@@ -120,18 +120,20 @@ namespace SG
 
             float speed = movementSpeed;
 
-            // Спринт: нужен зажатый флаг, заметный ввод и стамина > 0.
-            // playerStats == null (компонент не повешен) — фича тихо
-            // отключается, ничего не ломая.
+            // Спринт: нужен зажатый флаг и заметный ввод. Стамина-гейт и
+            // списание — только в Souls-режиме; в Action (NieR-style) спринт
+            // бесплатный. playerStats == null (компонент не повешен) — фича
+            // тихо отключается, ничего не ломая.
             bool wantsSprint = inputHandler.sprintFlag && inputHandler.moveAmount > 0.5f;
-            bool canSprint = playerStats == null || playerStats.HasStamina();
+            bool staminaFree = playerStats == null || playerStats.IsActionMode;
+            bool canSprint = staminaFree || playerStats.HasStamina();
 
             if (wantsSprint && canSprint)
             {
                 speed = sprintSpeed;
                 playerManager.isSprinting = true;
 
-                if (playerStats != null)
+                if (!staminaFree)
                 {
                     playerStats.DrainStamina(sprintStaminaCostPerSecond * delta);
                 }
@@ -165,9 +167,11 @@ namespace SG
                 // скриптами Unity не гарантирован.
                 inputHandler.rollFlag = false;
 
-                // Выдохся — ролла нет (souls-правило: действие доступно,
-                // пока стамина строго больше нуля).
-                if (playerStats != null && !playerStats.HasStamina())
+                // Souls-режим: выдохся — ролла нет (действие доступно, пока
+                // стамина строго больше нуля). Action-режим (NieR-style):
+                // уклонение всегда доступно — это ядро боевого ритма NieR,
+                // его нельзя отбирать у игрока из-за ресурса.
+                if (playerStats != null && !playerStats.IsActionMode && !playerStats.HasStamina())
                     return;
 
                 moveDirection = cameraObject.forward * inputHandler.vertical;
@@ -184,7 +188,9 @@ namespace SG
                         Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
                         myTransform.rotation = rollRotation;
 
-                        if (playerStats != null)
+                        // Списание — только в Souls-режиме (в Action ролл
+                        // бесплатный, см. гейт выше).
+                        if (playerStats != null && !playerStats.IsActionMode)
                         {
                             playerStats.TakeStaminaDamage(rollStaminaCost);
                         }
@@ -320,7 +326,9 @@ namespace SG
                 if (!playerManager.isGrounded)
                     return;
 
-                if (playerStats != null && !playerStats.HasStamina())
+                // Souls-режим: без стамины не прыгаем. Action-режим:
+                // прыжок бесплатный и всегда доступен с земли.
+                if (playerStats != null && !playerStats.IsActionMode && !playerStats.HasStamina())
                     return;
 
                 moveDirection = cameraObject.forward * inputHandler.vertical;
@@ -339,7 +347,8 @@ namespace SG
                 // ФАЗА 1: стартовый клип прыжка.
                 animatorHandler.PlayeTargetAnimation(jumpStartAnimation, true);
 
-                if (playerStats != null)
+                // Списание — только в Souls-режиме (см. гейт выше).
+                if (playerStats != null && !playerStats.IsActionMode)
                 {
                     playerStats.TakeStaminaDamage(jumpStaminaCost);
                 }

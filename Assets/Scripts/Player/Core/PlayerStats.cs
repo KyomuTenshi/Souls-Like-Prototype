@@ -3,6 +3,20 @@ using UnityEngine;
 namespace SG {
     public class PlayerStats : MonoBehaviour
     {
+        // Режим стамины. Souls — поведение туториала как было: гейт и
+        // списания на лёгких/тяжёлых атаках, ролле, прыжке и спринте.
+        // Action (NieR-style) — стамину тратят ТОЛЬКО тяжёлые атаки;
+        // лёгкие атаки, ролл, прыжок и спринт бесплатны и не гейтятся.
+        // Переключается в инспекторе одним полем — код туториала не трогаем.
+        public enum StaminaMode { Souls, Action }
+
+        [Header("Stamina Mode")]
+        [SerializeField] StaminaMode staminaMode = StaminaMode.Action;
+
+        // Читают PlayerAttacker / PlayerLocomotion / WeaponSlotManager,
+        // чтобы решить, применять ли souls-гейт и списания.
+        public bool IsActionMode { get { return staminaMode == StaminaMode.Action; } }
+
         public int healthLevel = 10;
         public int maxHealth;
         public int currentHealth;
@@ -24,6 +38,9 @@ namespace SG {
 
         AnimatorHandler animatorHandler;
         PlayerManager playerManager;
+        // Опциональный компонент возрождения (NieR-стиль смерти). Если его
+        // на игроке нет — смерть работает как в туториале: труп лежит.
+        PlayerRespawn playerRespawn;
 
         // Внутренний float-двойник currentStamina: позволяет плавно тратить
         // (спринт по delta) и плавно копить, а наружу (UI, туториал) отдавать
@@ -44,6 +61,7 @@ namespace SG {
 
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
             playerManager = GetComponent<PlayerManager>();
+            playerRespawn = GetComponent<PlayerRespawn>();
         }
 
         void Start()
@@ -119,6 +137,14 @@ namespace SG {
                 currentHealth = 0;
                 isDead = true;
                 animatorHandler.PlayeTargetAnimation("Dead", true);
+
+                // NieR-стиль: если на игроке есть PlayerRespawn — через
+                // паузу возрождаемся на чекпоинте. Нет компонента — старое
+                // поведение туториала (труп остаётся лежать).
+                if (playerRespawn != null)
+                {
+                    playerRespawn.HandleDeath();
+                }
             }
             else
             {
@@ -126,6 +152,24 @@ namespace SG {
                 // в одном кадре игрались и BetaDamage, и Dead.
                 animatorHandler.PlayeTargetAnimation("BetaDamage", true);
             }
+        }
+
+        // Полное восстановление HP и стамины с обновлением баров. Зовут
+        // Checkpoint (при активации) и PlayerRespawn (при возрождении).
+        // isDead здесь НЕ трогаем — оживление это ответственность
+        // PlayerRespawn, а чекпоинт лечит и так живого игрока.
+        public void RestoreHealthAndStamina()
+        {
+            currentHealth = maxHealth;
+
+            if (healthBar != null)
+            {
+                healthBar.SetCurrentHealth(currentHealth);
+            }
+
+            staminaFloat = maxStamina;
+            staminaRegenTimer = 0f;
+            SyncStaminaToInt();
         }
 
         // Разовая трата (атаки через Animation Event, ролл, прыжок).

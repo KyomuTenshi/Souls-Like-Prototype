@@ -19,10 +19,27 @@ namespace SG {
             playerStats = GetComponent<PlayerStats>();
         }
 
-        // Souls-правило: замахнуться можно, пока стамина > 0 (стоимость спишет
-        // Animation Event через WeaponSlotManager, и она может увести в ноль).
+        // Гейт разделён по типу атаки (см. PlayerStats.StaminaMode):
+        // - Action-режим (NieR-style): лёгкие атаки и комбо бесплатны и не
+        //   гейтятся вообще — комбо-флоу нельзя оборвать пустой стаминой.
+        // - Souls-режим: старое правило туториала — замахнуться можно, пока
+        //   стамина > 0 (стоимость спишет Animation Event через
+        //   WeaponSlotManager, и она может увести в ноль).
         // При playerStats == null гейт тихо отключается — ничего не ломаем.
-        private bool HasStaminaForAttack()
+        private bool HasStaminaForLightAttack()
+        {
+            if (playerStats == null)
+                return true;
+
+            if (playerStats.IsActionMode)
+                return true;
+
+            return playerStats.HasStamina();
+        }
+
+        // Тяжёлые атаки гейтятся стаминой в ОБОИХ режимах — в Action-режиме
+        // это единственный потребитель стамины, ради которого бар и живёт.
+        private bool HasStaminaForHeavyAttack()
         {
             return playerStats == null || playerStats.HasStamina();
         }
@@ -32,7 +49,7 @@ namespace SG {
             if (weapon == null)
                 return;
 
-            if (!HasStaminaForAttack())
+            if (!HasStaminaForLightAttack())
                 return;
 
             if(inputHandler.comboFlag)
@@ -71,7 +88,7 @@ namespace SG {
             if (playerManager.isIntetacting)
                 return;
 
-            if (!HasStaminaForAttack())
+            if (!HasStaminaForLightAttack())
                 return;
 
             if (string.IsNullOrEmpty(weapon.OH_Light_Attack_1))
@@ -96,7 +113,7 @@ namespace SG {
             if (playerManager.isIntetacting)
                 return;
 
-            if (!HasStaminaForAttack())
+            if (!HasStaminaForHeavyAttack())
                 return;
 
             if (string.IsNullOrEmpty(weapon.OH_Heavy_Attack_1))
