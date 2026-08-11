@@ -20,11 +20,8 @@ namespace SG
         public string OH_Heavy_Attack_1;
 
         [Header("Damage")]
-        // Базовый урон ЭТОГО оружия. Раньше урон был константой в
-        // DamageCollider (25 у всех) — разное оружие било одинаково.
-        // WeaponSlotManager при экипировке прописывает это значение в
-        // хитбокс (см. LoadWeaponOnSlot). Дефолт 25 = прежней константе,
-        // так что до настройки ассетов баланс не меняется.
+        // WeaponSlotManager прописывает это значение в хитбокс при
+        // экипировке. Дефолт 25 = прежней константе DamageCollider.
         public int baseDamage = 25;
 
         [Header("Stamina Costs")]

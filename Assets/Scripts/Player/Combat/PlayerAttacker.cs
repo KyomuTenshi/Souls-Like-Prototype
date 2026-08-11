@@ -11,12 +11,9 @@ namespace SG {
         public string lastAttack;
 
         [Header("Attack Orientation (NieR-style)")]
-        // Перед атакой персонаж мгновенно доворачивается в сторону текущего
-        // ввода движения (камера-относительно). Без этого атака уходила туда,
-        // куда персонаж СМОТРЕЛ до нажатия — в NieR/Souls удар всегда идёт
-        // туда, куда игрок держит стик в момент нажатия. Работает и для
-        // каждого шага комбо (redirect цепочки). Ввода нет — бьём по
-        // текущему направлению взгляда, как раньше.
+        // Перед атакой (и каждым шагом комбо) персонаж доворачивается в
+        // сторону текущего ввода движения: удар идёт туда, куда игрок держит
+        // стик в момент нажатия, а не куда персонаж смотрел до него.
         [SerializeField] bool orientAttacksToInput = true;
 
         private void Awake()
@@ -28,13 +25,10 @@ namespace SG {
             playerStats = GetComponent<PlayerStats>();
         }
 
-        // Гейт разделён по типу атаки (см. PlayerStats.StaminaMode):
-        // - Action-режим (NieR-style): лёгкие атаки и комбо бесплатны и не
-        //   гейтятся вообще — комбо-флоу нельзя оборвать пустой стаминой.
-        // - Souls-режим: старое правило туториала — замахнуться можно, пока
-        //   стамина > 0 (стоимость спишет Animation Event через
-        //   WeaponSlotManager, и она может увести в ноль).
-        // При playerStats == null гейт тихо отключается — ничего не ломаем.
+        #region Stamina Gates
+        // Action-режим: лёгкие атаки и комбо не гейтятся вообще — комбо-флоу
+        // нельзя оборвать пустой стаминой. Souls-режим: правило туториала.
+        // playerStats == null — гейт тихо отключается.
         private bool HasStaminaForLightAttack()
         {
             if (playerStats == null)
@@ -46,16 +40,16 @@ namespace SG {
             return playerStats.HasStamina();
         }
 
-        // Тяжёлые атаки гейтятся стаминой в ОБОИХ режимах — в Action-режиме
-        // это единственный потребитель стамины, ради которого бар и живёт.
+        // Тяжёлые гейтятся в обоих режимах — в Action это единственный
+        // потребитель стамины, ради которого бар и живёт.
         private bool HasStaminaForHeavyAttack()
         {
             return playerStats == null || playerStats.HasStamina();
         }
+        #endregion
 
-        // Доворот в сторону ввода. Используем корень CameraHandler'а
-        // (он вращается только по yaw), а не Camera.main — у самой камеры
-        // forward наклонён по pitch и загрязнял бы направление.
+        // Корень CameraHandler'а, а не Camera.main: у камеры forward наклонён
+        // по pitch и загрязнял бы направление доворота.
         private void OrientTowardsInputDirection()
         {
             if (!orientAttacksToInput)
@@ -78,6 +72,7 @@ namespace SG {
             transform.rotation = Quaternion.LookRotation(direction.normalized);
         }
 
+        #region Combo
         public void HandleWeaponCombo(WeaponItem weapon)
         {
             if (weapon == null)
@@ -86,10 +81,14 @@ namespace SG {
             if (!HasStaminaForLightAttack())
                 return;
 
-            if(inputHandler.comboFlag)
-            { 
-                animatorHandler.anim.SetBool("canDoCombo", false);
-                
+            if (inputHandler.comboFlag)
+            {
+                animatorHandler.DisableConbo();
+
+                // Шаги комбо держат attackingWeapon актуальным: stamina-события
+                // (DrainStamina*) на клипах читают именно его.
+                weaponSlotManager.attackingWeapon = weapon;
+
                 if (lastAttack == weapon.OH_Light_Attack_1)
                 {
                     OrientTowardsInputDirection();
@@ -110,12 +109,10 @@ namespace SG {
                 }
                 else if (!string.IsNullOrEmpty(weapon.OH_Heavy_Attack_1) && lastAttack == weapon.OH_Heavy_Attack_1)
                 {
-                    // НОВОЕ (Фаза 3): возврат из тяжёлого финишера обратно в
-                    // лёгкую цепочку — строки вида light-heavy-light, как в
-                    // NieR. Ветка СПИТ, пока на клипе тяжёлой атаки нет
-                    // событий EnableCombo/ComboWindowClosed (комбо-окно из
-                    // тяжёлой просто не открывается). Расставишь события —
-                    // строка заработает без единой правки кода.
+                    // Возврат из тяжёлого финишера в лёгкую цепочку
+                    // (light-heavy-light, как в NieR). Ветка спит, пока на
+                    // клипе тяжёлой атаки нет событий EnableCombo/
+                    // ComboWindowClosed; расставишь — заработает без правок.
                     OrientTowardsInputDirection();
                     animatorHandler.PlayeTargetAnimation(weapon.OH_Light_Attack_1, true);
                     lastAttack = weapon.OH_Light_Attack_1;
@@ -123,12 +120,8 @@ namespace SG {
             }
         }
 
-        // НОВОЕ (Фаза 3). Тяжёлый ФИНИШЕР из комбо-окна: RT посреди лёгкой
-        // цепочки ветвит её в OH_Heavy_Attack_1 сразу, не дожидаясь конца
-        // всех лёгких ударов. Зовёт InputHandler.HandleAttackInput по той же
-        // схеме, что HandleWeaponCombo (comboFlag поднят на время вызова).
-        // Стамина: как у обычной тяжёлой — гейт в обоих режимах, списание
-        // сделает Animation Event DrainStaminaHeavyAttack на клипе.
+        // Тяжёлый финишер из комбо-окна: heavy посреди лёгкой цепочки ветвит
+        // её в OH_Heavy_Attack_1, не дожидаясь конца лёгких ударов.
         public void HandleHeavyComboFinisher(WeaponItem weapon)
         {
             if (weapon == null)
@@ -154,18 +147,17 @@ namespace SG {
                 lastAttack = weapon.OH_Heavy_Attack_1;
             }
         }
+        #endregion
 
+        #region Basic Attacks
         public void HandleLightAttack(WeaponItem weapon)
         {
-            // Оружие может быть null, если unarmedWeapon не назначен в
-            // PlayerInventory — без guard'а нажатие атаки роняло NRE.
             if (weapon == null)
             {
                 Debug.LogWarning("PlayerAttacker: атака без оружия — проверь, что unarmedWeapon назначен в PlayerInventory.");
                 return;
             }
 
-            // Не начинаем новую атаку, пока играет анимация-интеракция.
             if (playerManager.isIntetacting)
                 return;
 
@@ -211,5 +203,6 @@ namespace SG {
             animatorHandler.PlayeTargetAnimation(weapon.OH_Heavy_Attack_1, true);
             lastAttack = weapon.OH_Heavy_Attack_1;
         }
+        #endregion
     }
 }

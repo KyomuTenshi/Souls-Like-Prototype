@@ -15,14 +15,9 @@ namespace SG {
             CollectSlotsIfNeeded();
         }
 
-        // БЫЛО: GetComponentsInChildren в Start(). Две проблемы:
-        // 1) Awake/Start НЕ выполняются у выключенных объектов, а окно
-        //    экипировки на старте сцены обычно выключено. UIManager включает
-        //    его через SetActive(true) и сразу зовёт LoadWeaponOnEquipmentScreen
-        //    — Awake при SetActive выполнится синхронно, а Start только в конце
-        //    кадра, т.е. со Start массив был бы ещё null -> NRE.
-        // 2) Без (true) выключенные слоты-ячейки не попадали бы в массив.
-        // Ленивая инициализация — страховка на случай вызова до Awake.
+        // Сбор ленивый и в Awake, а не в Start: окно на старте сцены
+        // выключено, а UIManager после SetActive(true) обращается к слотам
+        // в тот же кадр — Start к этому моменту ещё не выполнился бы.
         private void CollectSlotsIfNeeded()
         {
             if (handEquipmentSlotUI == null || handEquipmentSlotUI.Length == 0)
@@ -59,14 +54,9 @@ namespace SG {
             }
         }
 
-        // БЫЛО: playerInventory.weaponsInRightHandSlots[1] напрямую. Код жёстко
-        // предполагал размер массива РОВНО 2 на каждую руку — если в инспекторе
-        // задан массив меньше (например, размер 1, как в текущем проекте),
-        // обращение по индексу 1 вылетало в IndexOutOfRangeException прямо при
-        // открытии окна экипировки. Теперь индекс всегда проверяется против
-        // реальной длины массива: слота нет — вернём null, а
-        // HandEquipmentSlotUI.AddItem(null) уже умеет показывать пустую ячейку
-        // без иконки, ничего не крашится.
+        // Слота с этим индексом может не существовать — размер массива
+        // задаётся в инспекторе. null означает пустую ячейку, AddItem(null)
+        // корректно её отрисует.
         private WeaponItem GetWeaponAt(WeaponItem[] slots, int index)
         {
             if (slots == null || index < 0 || index >= slots.Length)

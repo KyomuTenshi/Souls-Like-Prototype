@@ -1,6 +1,6 @@
-// CameraHandler.cs
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SG 
 {
@@ -16,10 +16,6 @@ namespace SG
         public LayerMask ignoreLayers;
         public LayerMask environmentLayer;
         private Vector3 cameraFollowVelocity = Vector3.zero;
-        // ИСПРАВЛЕНО: было Vector3 cameraHeightVelocity, а сглаживалась им
-        // только Y-компонента (см. SetCameraHeight ниже) — лишние X/Z поля
-        // ref-параметра просто не использовались. Float честнее отражает,
-        // что тут реально сглаживается.
         private float cameraHeightVelocityY;
 
         public static CameraHandler singleton;
@@ -46,8 +42,13 @@ namespace SG
         public float cameraSphereRadius = 0.2f;
         public float cameraCollisionOffSet = 0.2f;
         public float minimunCollisionOffSet = 0.2f;
-        public float lockefPivotPosition = 2.25f;
+        [FormerlySerializedAs("lockefPivotPosition")]
+        public float lockedPivotPosition = 2.25f;
         public float unlockedPivotPosition = 1.65f;
+
+        [Header("Pivot Height Smoothing")]
+        // SmoothDamp-время подъёма/спуска пивота при входе/выходе из lock-on.
+        [SerializeField] private float pivotHeightSmoothTime = 0.15f;
 
         [Header("Lock On")]
         public Transform currentLockOnTarget;
@@ -103,11 +104,8 @@ namespace SG
         {
             if (inputHandler.lockOnFlag == false && currentLockOnTarget == null)
             {
-                if (inputHandler)
-                {
-                    lookAngle += mouseXInput * mouseLookSensitivity;
-                    pivotAngle -= mouseYInput * mousePivotSensitivity;
-                }
+                lookAngle += mouseXInput * mouseLookSensitivity;
+                pivotAngle -= mouseYInput * mousePivotSensitivity;
 
                 pivotAngle = Mathf.Clamp(pivotAngle, minimumPivot, maximumPivot);
 
@@ -124,6 +122,13 @@ namespace SG
             }
             else
             {
+                // Переходный кадр: lockOnFlag уже поднят, а цель ещё/уже null
+                // (уничтожена, рассинхрон флага и цели) — кадр без поворота
+                // невиден глазу, NRE каждый кадр — виден. Та же схема, что в
+                // PlayerLocomotion.HandleRotation.
+                if (currentLockOnTarget == null)
+                    return;
+
                 Vector3 dir = currentLockOnTarget.position - transform.position;
                 dir.Normalize();
                 dir.y = 0;
@@ -252,18 +257,17 @@ namespace SG
 
         public void SetCameraHeight()
         {
-            // ИСПРАВЛЕНО: раньше пивоту целиком присваивался
-            // new Vector3(0, height) — обнулялись X и Z, если у Camera Pivot
-            // был осмысленный горизонтальный офсет, он стирался каждый кадр.
-            // Теперь трогаем только Y, X/Z остаются как заданы в сцене.
-            // Плюс: если height == 0 (как сейчас в инспекторе) — камера
-            // ожидаемо едет к локальному нулю относительно Camera Holder,
-            // это не баг сглаживания, а то, что 0 в принципе означает
-            // "на уровне пивота родителя". Верни Locked/Unlocked в разумные
-            // значения под рост своей модели (например, 1.6-1.8 / 2.0-2.3).
+            // Трогаем только Y: полное присваивание localPosition стирало бы
+            // горизонтальный офсет пивота, заданный в сцене. Высота 0 в
+            // инспекторе = "на уровне пивота родителя" — это не баг
+            // сглаживания; держи Locked/Unlocked под рост модели
+            // (~1.6-1.8 / 2.0-2.3).
+            // Третий параметр SmoothDamp — smoothTime (сколько секунд занимает
+            // сглаживание), а не delta: Time.deltaTime здесь делал переход
+            // почти мгновенным и fps-зависимым.
             Vector3 pivotLocalPosition = cameraPivotTransform.localPosition;
-            float targetHeight = currentLockOnTarget != null ? lockefPivotPosition : unlockedPivotPosition;
-            pivotLocalPosition.y = Mathf.SmoothDamp(pivotLocalPosition.y, targetHeight, ref cameraHeightVelocityY, Time.deltaTime);
+            float targetHeight = currentLockOnTarget != null ? lockedPivotPosition : unlockedPivotPosition;
+            pivotLocalPosition.y = Mathf.SmoothDamp(pivotLocalPosition.y, targetHeight, ref cameraHeightVelocityY, pivotHeightSmoothTime);
             cameraPivotTransform.localPosition = pivotLocalPosition;
         }
     }

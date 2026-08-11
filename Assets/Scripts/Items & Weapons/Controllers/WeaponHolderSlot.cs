@@ -22,14 +22,8 @@ namespace SG {
             if (currentWeaponModel != null)
             {
                 Destroy(currentWeaponModel);
-                // БЫЛО: после Destroy() ссылка currentWeaponModel не обнулялась
-                // явно. Unity's Destroy() уничтожает объект не мгновенно, а в
-                // конце кадра, и до этого момента (и даже пару обращений после,
-                // если полагаться только на перегруженный ==) ссылка технически
-                // "жива" — из-за этого в Inspector или при повторном быстром вызове
-                // LoadWeaponModel в тот же кадр можно было словить обращение к
-                // уже помеченному на удаление объекту. Обнуляем ссылку сразу и
-                // явно, а не полагаемся на fake-null поведение UnityEngine.Object.
+                // Destroy срабатывает в конце кадра — обнуляем ссылку сразу,
+                // не полагаясь на fake-null поведение UnityEngine.Object.
                 currentWeaponModel = null;
             }
         }
@@ -38,14 +32,10 @@ namespace SG {
         {
             UnloadWeaponAndDestroy();
 
+            // modelPrefab может быть не назначен (unarmed): Instantiate(null)
+            // кидал бы ArgumentException и ломал загрузку остальных слотов.
             if (weaponItem == null || weaponItem.modelPrefab == null)
             {
-                // Добавлена проверка weaponItem.modelPrefab == null — если в
-                // ScriptableObject оружия забыли назначить modelPrefab,
-                // Instantiate(null) кидает ArgumentException и ломает загрузку
-                // остальных слотов (например, если оба — left/right — грузятся
-                // подряд в PlayerInventory.Start()). Теперь просто разгружаем
-                // слот, не крашась.
                 UnloadWeapon();
                 return;
             }

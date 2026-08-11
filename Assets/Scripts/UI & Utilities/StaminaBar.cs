@@ -8,9 +8,8 @@ namespace SG {
 
         private void Awake()
         {
-            // Awake, а не Start — по той же причине, что и в HealthBar:
-            // PlayerStats.Start() обращается к бару, а порядок Start()
-            // между скриптами Unity не гарантирует.
+            // Awake, а не Start: PlayerStats.Start() дёргает бар, а порядок
+            // Start() между скриптами не гарантирован.
             if (slider == null)
             {
                 slider = GetComponent<Slider>();

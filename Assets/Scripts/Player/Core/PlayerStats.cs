@@ -3,18 +3,14 @@ using UnityEngine;
 namespace SG {
     public class PlayerStats : MonoBehaviour
     {
-        // Режим стамины. Souls — поведение туториала как было: гейт и
-        // списания на лёгких/тяжёлых атаках, ролле, прыжке и спринте.
-        // Action (NieR-style) — стамину тратят ТОЛЬКО тяжёлые атаки;
-        // лёгкие атаки, ролл, прыжок и спринт бесплатны и не гейтятся.
-        // Переключается в инспекторе одним полем — код туториала не трогаем.
+        // Souls — поведение туториала: гейт и списания на атаках, ролле,
+        // прыжке, спринте. Action (NieR) — стамину тратят только тяжёлые
+        // атаки, остальное бесплатно. Код туториала не трогается.
         public enum StaminaMode { Souls, Action }
 
         [Header("Stamina Mode")]
         [SerializeField] StaminaMode staminaMode = StaminaMode.Action;
 
-        // Читают PlayerAttacker / PlayerLocomotion / WeaponSlotManager,
-        // чтобы решить, применять ли souls-гейт и списания.
         public bool IsActionMode { get { return staminaMode == StaminaMode.Action; } }
 
         public int healthLevel = 10;
@@ -24,13 +20,9 @@ namespace SG {
         public bool isDead;
 
         [Header("I-Frames")]
-        // Кадры неуязвимости (уклонение). Флаг ставят/снимают Animation
-        // Event'ы EnableInvulnerability / DisableInvulnerability на клипе
-        // Rolling (методы живут в AnimatorHandler — события должны быть на
-        // объекте с Animator). Пока события не расставлены, флаг просто
-        // всегда false — поведение как раньше, ничего не ломается.
-        // Ролл без i-frames в action-игре не работает как защитный
-        // инструмент: игрок физически не может "прододживать" удары.
+        // Ставят/снимают Animation Event'ы EnableInvulnerability /
+        // DisableInvulnerability на клипе Rolling (методы в AnimatorHandler).
+        // События не расставлены — флаг всегда false, поведение как раньше.
         public bool isInvulnerable;
 
         public int staminaLevel = 10;
@@ -38,8 +30,6 @@ namespace SG {
         public int currentStamina;
 
         [Header("Stamina Regen")]
-        // Классика souls: стамина сама восстанавливается, но не сразу после
-        // траты (задержка) и не во время спринта/действий.
         [SerializeField] float staminaRegenRate = 20f;      // единиц в секунду
         [SerializeField] float staminaRegenDelay = 1.2f;    // пауза после траты
 
@@ -48,21 +38,16 @@ namespace SG {
 
         AnimatorHandler animatorHandler;
         PlayerManager playerManager;
-        // Опциональный компонент возрождения (NieR-стиль смерти). Если его
-        // на игроке нет — смерть работает как в туториале: труп лежит.
+        // Опциональный компонент (NieR-смерть). Нет — труп лежит, как в туториале.
         PlayerRespawn playerRespawn;
 
-        // Внутренний float-двойник currentStamina: позволяет плавно тратить
-        // (спринт по delta) и плавно копить, а наружу (UI, туториал) отдавать
-        // привычный int. currentStamina остаётся публичным int — совместимость
-        // с уроками не трогаем.
+        // Float-двойник currentStamina: плавная трата/накопление, наружу
+        // (UI, туториал) отдаётся привычный int.
         float staminaFloat;
         float staminaRegenTimer;
 
         private void Awake()
         {
-            // FindFirstObjectByType вместо устаревшего FindObjectOfType(true):
-            // тот же смысл (включая неактивные объекты), без obsolete-warning.
             // Ручное назначение в инспекторе имеет приоритет.
             if (healthBar == null)
                 healthBar = FindFirstObjectByType<HealthBar>(FindObjectsInactive.Include);
@@ -92,8 +77,8 @@ namespace SG {
             currentStamina = maxStamina;
             staminaFloat = maxStamina;
 
-            // Без SetMaxStamina слайдер остаётся с дефолтным maxValue = 1 и
-            // визуально "опустошается" за один удар, хотя числа верные.
+            // Без SetMaxStamina слайдер остался бы с maxValue = 1 и визуально
+            // опустошался за один удар.
             if (staminaBar != null)
             {
                 staminaBar.SetMaxStamina(maxStamina);
@@ -108,9 +93,9 @@ namespace SG {
         {
             RegenerateStamina();
 
-            // Страховка от "вечной неуязвимости": если ролл был прерван чем-то
-            // без Disable-события (например, срыв с обрыва в Falling посреди
-            // клипа), флаг снимается, как только персонаж вышел из интеракции.
+            // Страховка от вечной неуязвимости: ролл прерван без
+            // Disable-события (срыв с обрыва) — флаг снимается с выходом из
+            // интеракции.
             if (isInvulnerable && playerManager != null && !playerManager.isIntetacting)
             {
                 isInvulnerable = false;
@@ -129,28 +114,21 @@ namespace SG {
             return maxStamina;
         }
 
-        // Действие доступно, пока стамина строго больше нуля (по умолчанию),
-        // при этом стоимость может увести её в ноль — как в Dark Souls.
+        // Доступно, пока стамина строго больше нуля; стоимость может увести
+        // её в ноль — как в Dark Souls.
         public bool HasStamina(int cost = 1)
         {
             return currentStamina >= cost;
         }
 
-        // БЫЛО: void. Теперь возвращает, ПРОШЁЛ ли урон: false — удар
-        // проигнорирован (смерть или i-frames уклонения), true — урон
-        // применён. Нужно хитстопу в DamageCollider: замирать должен только
-        // реальный контакт, а не удар "сквозь" ролл. Смена void -> bool
-        // обратно совместима по исходникам: все старые вызовы
-        // playerStats.TakeDamage(x); (в т.ч. из будущих уроков туториала)
-        // компилируются как раньше — возвращаемое значение просто игнорируется.
+        // Возвращает, прошёл ли урон (false — смерть или i-frames). Нужно
+        // хитстопу: замирает только реальный контакт. Старые вызовы
+        // TakeDamage(x); компилируются как раньше.
         public bool TakeDamage(int damage)
         {
-            // После смерти урон игнорируется — иначе каждый последующий удар
-            // заново запускал анимацию Dead.
             if (isDead)
                 return false;
 
-            // Активные i-frames уклонения: урон полностью игнорируется.
             if (isInvulnerable)
                 return false;
 
@@ -167,9 +145,6 @@ namespace SG {
                 isDead = true;
                 animatorHandler.PlayeTargetAnimation("Dead", true);
 
-                // NieR-стиль: если на игроке есть PlayerRespawn — через
-                // паузу возрождаемся на чекпоинте. Нет компонента — старое
-                // поведение туториала (труп остаётся лежать).
                 if (playerRespawn != null)
                 {
                     playerRespawn.HandleDeath();
@@ -177,18 +152,15 @@ namespace SG {
             }
             else
             {
-                // else, а не второй независимый if: на смертельном ударе раньше
-                // в одном кадре игрались и BetaDamage, и Dead.
                 animatorHandler.PlayeTargetAnimation("BetaDamage", true);
             }
 
             return true;
         }
 
-        // Полное восстановление HP и стамины с обновлением баров. Зовут
-        // Checkpoint (при активации) и PlayerRespawn (при возрождении).
-        // isDead здесь НЕ трогаем — оживление это ответственность
-        // PlayerRespawn, а чекпоинт лечит и так живого игрока.
+        // Полное восстановление с обновлением баров. Зовут Checkpoint и
+        // PlayerRespawn. isDead не трогаем: оживление — ответственность
+        // PlayerRespawn, а чекпоинт лечит живого.
         public void RestoreHealthAndStamina()
         {
             currentHealth = maxHealth;
@@ -204,7 +176,6 @@ namespace SG {
         }
 
         // Разовая трата (атаки через Animation Event, ролл, прыжок).
-        // Сигнатура не менялась — WeaponSlotManager и туториал зовут её как раньше.
         public void TakeStaminaDamage(int damage)
         {
             staminaFloat = Mathf.Max(0f, staminaFloat - damage);
@@ -212,8 +183,7 @@ namespace SG {
             staminaRegenTimer = staminaRegenDelay;
         }
 
-        // Плавная трата по времени (спринт): дробные значения копятся во
-        // float-двойнике, int в UI тикает вниз без рывков.
+        // Плавная трата по времени (спринт).
         public void DrainStamina(float amount)
         {
             if (amount <= 0f)
@@ -229,9 +199,8 @@ namespace SG {
             if (isDead)
                 return;
 
-            // Не копим во время спринта и анимаций-интеракций (атака, ролл,
-            // приземление) — стамина начинает возвращаться, когда игрок
-            // "отдышался".
+            // Не копим во время спринта и интеракций — стамина возвращается,
+            // когда игрок "отдышался".
             if (playerManager != null && (playerManager.isSprinting || playerManager.isIntetacting))
                 return;
 

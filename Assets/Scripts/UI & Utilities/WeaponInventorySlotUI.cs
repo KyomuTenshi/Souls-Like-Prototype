@@ -2,15 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace SG {
-    // НОВЫЙ ФАЙЛ. UIManager уже ссылается на WeaponInventorySlotUI
-    // (GetComponentsInChildren<WeaponInventorySlotUI>), но самого класса в
-    // проекте не было — без него проект вообще не компилируется.
-    //
     // Слот списка инвентаря (окно "все подобранные оружия"). Вешается на
-    // каждый слот-ячейку внутри окна инвентаря; UIManager.UpdateUI()
-    // заполняет ячейки из PlayerInventory.weaponsInventory.
-    // Логика выбора/экипировки по клику — тема следующих уроков туториала,
-    // сюда она добавится позже, ничего не сломав.
+    // ячейку в Canvas; UIManager.UpdateUI() заполняет ячейки из
+    // PlayerInventory.weaponsInventory. Выбор/экипировка по клику — тема
+    // следующих уроков туториала.
     public class WeaponInventorySlotUI : MonoBehaviour
     {
         public Image icon;
@@ -18,8 +13,15 @@ namespace SG {
 
         public void AddItem(WeaponItem newItem)
         {
-            // null-безопасно, по той же схеме, что HandEquipmentSlotUI:
-            // пустая ячейка — валидный случай, а не повод для NRE.
+            // Тот же guard, что в HandEquipmentSlotUI: незаполненный Icon на
+            // одной ячейке не должен NRE ронять весь цикл UIManager.UpdateUI()
+            // и оставлять остальные слоты необновлёнными.
+            if (icon == null)
+            {
+                Debug.LogWarning("WeaponInventorySlotUI: поле Icon не назначено на " + gameObject.name + ".", this);
+                return;
+            }
+
             if (newItem == null)
             {
                 ClearItem();
@@ -35,6 +37,10 @@ namespace SG {
         public void ClearItem()
         {
             item = null;
+
+            if (icon == null)
+                return;
+
             icon.sprite = null;
             icon.enabled = false;
             gameObject.SetActive(false);

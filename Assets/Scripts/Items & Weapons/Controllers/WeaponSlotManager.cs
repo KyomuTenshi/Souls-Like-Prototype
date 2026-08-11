@@ -4,14 +4,13 @@ namespace SG {
     public class WeaponSlotManager : MonoBehaviour
     {
         [Header("Animator Layers")]
-        // Имена СЛОЁВ в Animator Controller (вкладка Layers в окне Animator),
-        // не имена состояний! Если слой не найден, используем -1 — CrossFade
-        // тогда ищет состояние по всем слоям, и всё продолжает работать.
+        // Имена СЛОЁВ в Animator Controller, не имена состояний. Слой не
+        // найден — index = -1, CrossFade ищет состояние по всем слоям.
         [SerializeField] private string leftArmLayerName = "Left Arm";
         [SerializeField] private string rightArmLayerName = "Right Arm";
 
         public WeaponItem attackingWeapon;
-        
+
         WeaponHolderSlot leftHandSlot;
         WeaponHolderSlot rightHandSlot;
 
@@ -30,8 +29,8 @@ namespace SG {
         {
             animator = GetComponent<Animator>();
 
-            // FindObjectsInactive.Include — чтобы выключенный на старте канвас
-            // не оставил quickSlotsUI == null молча.
+            // Include — выключенный на старте канвас не должен оставить
+            // quickSlotsUI == null молча.
             quickSlotsUI = FindAnyObjectByType<QuickSlotsUI>(FindObjectsInactive.Include);
 
             leftArmLayerIndex = animator.GetLayerIndex(leftArmLayerName);
@@ -39,37 +38,34 @@ namespace SG {
 
             playerStats = GetComponentInParent<PlayerStats>();
 
-            // Warning, а не Error: со значением -1 CrossFade корректно найдёт
-            // состояние по всем слоям, игра работает. Но лучше указать точное
-            // имя слоя в инспекторе, чтобы CrossFade бил ровно в нужный слой.
             if (leftArmLayerIndex < 0)
-                Debug.LogWarning($"WeaponSlotManager: слой '{leftArmLayerName}' не найден в Animator Controller — проверь вкладку Layers в окне Animator и укажи точное имя в инспекторе. Пока используется поиск по всем слоям.");
+                Debug.LogWarning($"WeaponSlotManager: слой '{leftArmLayerName}' не найден в Animator Controller — укажи точное имя в инспекторе. Пока идёт поиск по всем слоям.");
             if (rightArmLayerIndex < 0)
-                Debug.LogWarning($"WeaponSlotManager: слой '{rightArmLayerName}' не найден в Animator Controller — проверь вкладку Layers в окне Animator и укажи точное имя в инспекторе. Пока используется поиск по всем слоям.");
+                Debug.LogWarning($"WeaponSlotManager: слой '{rightArmLayerName}' не найден в Animator Controller — укажи точное имя в инспекторе. Пока идёт поиск по всем слоям.");
 
             WeaponHolderSlot[] weaponHolderSlots = GetComponentsInChildren<WeaponHolderSlot>();
             foreach (WeaponHolderSlot weaponSlot in weaponHolderSlots)
             {
-                if(weaponSlot.isLeftHandSlot)
+                if (weaponSlot.isLeftHandSlot)
                 {
                     leftHandSlot = weaponSlot;
-                } else if (weaponSlot.isRightHandSlot)
+                }
+                else if (weaponSlot.isRightHandSlot)
                 {
-                   rightHandSlot = weaponSlot; 
+                    rightHandSlot = weaponSlot;
                 }
             }
         }
 
         public void LoadWeaponOnSlot(WeaponItem weaponItem, bool isLeft)
         {
-            if(isLeft)
+            if (isLeft)
             {
                 leftHandSlot.LoadWeaponModel(weaponItem);
                 LoadLeftHandDamageCollider();
 
-                // Урон оружия -> его хитбокс. Раньше эта связка отсутствовала:
-                // DamageCollider всегда бил своей константой (25), и поле
-                // baseDamage на оружии было бы мёртвым грузом.
+                // Урон оружия -> его хитбокс; без этого DamageCollider бил бы
+                // своей константой и baseDamage был бы мёртвым полем.
                 if (leftHandDamageCollider != null && weaponItem != null)
                 {
                     leftHandDamageCollider.currentWeaponDamage = weaponItem.baseDamage;
@@ -79,12 +75,14 @@ namespace SG {
                 if (weaponItem != null)
                 {
                     animator.CrossFade(weaponItem.left_hand_idle, 0.2f, leftArmLayerIndex);
-                } else
+                }
+                else
                 {
                     animator.CrossFade("Left Arm Empty", 0.2f, leftArmLayerIndex);
                 }
                 #endregion
-            } else
+            }
+            else
             {
                 rightHandSlot.LoadWeaponModel(weaponItem);
                 LoadRightHandDamageCollider();
@@ -98,7 +96,8 @@ namespace SG {
                 if (weaponItem != null)
                 {
                     animator.CrossFade(weaponItem.right_hand_idle, 0.2f, rightArmLayerIndex);
-                } else
+                }
+                else
                 {
                     animator.CrossFade("Right Arm Empty", 0.2f, rightArmLayerIndex);
                 }
@@ -114,7 +113,6 @@ namespace SG {
         #region Handle Weapon's Damage Collider
         public void LoadLeftHandDamageCollider()
         {
-            // currentWeaponModel может быть null (безоружный без modelPrefab).
             GameObject weaponModel = leftHandSlot.currentWeaponModel;
             leftHandDamageCollider = weaponModel != null
                 ? weaponModel.GetComponentInChildren<DamageCollider>()
@@ -129,8 +127,8 @@ namespace SG {
                 : null;
         }
 
-        // Guard'ы обязательны: методы вызываются Animation Event'ами из клипов
-        // атак — без DamageCollider на текущем "оружии" событие роняло бы NRE.
+        // Методы региона зовутся Animation Event'ами из клипов — guard'ы
+        // обязательны: события могут прийти без коллайдера/оружия/статов.
         public void OpenLeftHandDamageCollider()
         {
             if (leftHandDamageCollider != null)
@@ -158,18 +156,14 @@ namespace SG {
         #endregion
 
         #region Handle Weapon Stamina Drain
-        // Оба метода вызываются Animation Event'ами — guard'ы по той же
-        // причине, что у Open/Close выше: событие может сработать, когда
-        // attackingWeapon ещё не выставлен (клип запущен не через
-        // PlayerAttacker) или playerStats не найден.
         public void DrainStaminaLightAttack()
         {
             if (playerStats == null || attackingWeapon == null)
                 return;
 
-            // Action-режим (NieR-style): лёгкие атаки бесплатны. Метод и
-            // Animation Event'ы в клипах НЕ удаляем — при переключении
-            // обратно в Souls всё снова списывается, как в туториале.
+            // Action-режим (NieR): лёгкие атаки бесплатны. Метод и события в
+            // клипах не удаляем — при переключении в Souls всё снова
+            // списывается, как в туториале.
             if (playerStats.IsActionMode)
                 return;
 

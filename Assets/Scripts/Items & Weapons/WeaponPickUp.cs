@@ -28,10 +28,6 @@ namespace SG {
 
             playerInventory.weaponsInventory.Add(weapon);
 
-            // Через PlayerManager, а не прямыми GetComponent<TMP>/<RawImage>
-            // на itemInteractableGameObject: работает независимо от того, на
-            // каком именно дочернем объекте лежат текст и картинка, и
-            // уведомление теперь само скрывается по таймеру.
             playerManager.ShowItemPickupNotification(weapon.itemName, weapon.itemIcon);
 
             Destroy(gameObject);

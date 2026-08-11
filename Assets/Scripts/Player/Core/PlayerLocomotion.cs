@@ -1,4 +1,3 @@
-// PlayerLocomotion.cs
 using UnityEngine;
 
 namespace SG 
@@ -60,6 +59,7 @@ namespace SG
         {
             cameraHandler = FindFirstObjectByType<CameraHandler>();
         }
+
         void Start()
         {
             playerManager = GetComponent<PlayerManager>();
@@ -106,14 +106,9 @@ namespace SG
                 }
                 else
                 {
-                    // ИСПРАВЛЕНО: если lockOnFlag уже true, а
-                    // currentLockOnTarget ещё/уже null (переходный кадр,
-                    // цель уничтожена, рассинхрон флага и цели) — раньше
-                    // здесь был прямой NRE каждый кадр, который обрывал
-                    // Update() ДО HandleRollingAndSprinting/HandleFalling/
-                    // HandleJumping и до всех вызовов аниматора — этим и
-                    // объяснялись "не работающие анимации". Раннее return
-                    // делает лишний кадр без поворота, а не крэш всего кадра.
+                    // Рассинхрон флага и цели (переходный кадр, цель
+                    // уничтожена): кадр без поворота вместо NRE, который
+                    // обрывал бы весь Update до аниматора.
                     if (cameraHandler.currentLockOnTarget == null)
                         return;
 
@@ -225,6 +220,8 @@ namespace SG
 
                 if (moveDirection.sqrMagnitude > 0.0001f)
                 {
+                    // Додж-кансел атаки: гасим комбо-окно и хитбоксы, чтобы
+                    // оборванный замах не оставил включённый DamageCollider.
                     if (isCancellingAttack)
                     {
                         animatorHandler.DisableConbo();
@@ -298,6 +295,8 @@ namespace SG
 
             targetPosition = myTransform.position;
 
+            // Пока действует grace прыжка, проверку земли пропускаем — иначе
+            // снап к земле гасил бы восходящую фазу.
             bool jumpAscending = jumpGraceTimer > 0f;
             if (jumpAscending)
             {
@@ -317,7 +316,6 @@ namespace SG
                 {
                     if (inAirTimer > airTimeForLandAnimation)
                     {
-                        Debug.Log("You were in the air for " + inAirTimer);
                         animatorHandler.PlayeTargetAnimation("Land", true);
                         inAirTimer = 0;
                     }
@@ -364,7 +362,7 @@ namespace SG
                 }
             }
         }
-        
+
         public void HandleJumping()
         {
             if (playerManager.isIntetacting)

@@ -3,9 +3,7 @@ using UnityEngine;
 namespace SG {
     public class UIManager : MonoBehaviour
     {
-        // Можно назначить в инспекторе; если пусто — найдём сами в Start.
         public PlayerInventory playerInventory;
-
         public GameObject selectWindow;
 
         EquipmentWindowUI equipmentWindowUI;
@@ -22,10 +20,8 @@ namespace SG {
             equipmentWindowUI = GetComponentInChildren<EquipmentWindowUI>(true);
         }
 
-        // БЫЛО: окно открывалось, но НИЧЕМ не заполнялось — ни экран
-        // экипировки (LoadWeaponOnEquipmentScreen никто не вызывал), ни
-        // список инвентаря. Теперь при каждом открытии данные обновляются —
-        // так подобранное между открытиями оружие сразу видно в списке.
+        // Данные обновляются при каждом открытии окна — оружие, подобранное
+        // между открытиями, сразу видно в списке.
         public void UpdateUI()
         {
             if (playerInventory == null)
@@ -53,8 +49,6 @@ namespace SG {
                     }
                 }
 
-                // Слоты — заранее расставленные ячейки в Canvas. Если оружия
-                // в списке больше, чем ячеек, лишнее просто не показывается.
                 if (playerInventory.weaponsInventory.Count > weaponInventorySlots.Length)
                 {
                     Debug.LogWarning("UIManager: слотов инвентаря меньше, чем оружия в списке — добавь ячеек WeaponInventorySlotUI в Canvas.");
@@ -73,10 +67,8 @@ namespace SG {
             selectWindow.SetActive(true);
             UpdateUI();
 
-            // Пока открыто меню, курсор нужен для кликов по кнопкам —
-            // PlayerManager.Awake() держит его залоченным и невидимым для
-            // 3rd-person камеры, без этого мышь физически не дотянется
-            // до UI-элементов.
+            // Для кликов по UI курсор нужно разлочить — в геймплее его
+            // держит залоченным PlayerManager.Awake().
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
@@ -88,7 +80,6 @@ namespace SG {
 
             selectWindow.SetActive(false);
 
-            // Возвращаем курсор в состояние геймплея (см. PlayerManager.Awake).
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }

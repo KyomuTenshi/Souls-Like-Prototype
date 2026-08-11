@@ -13,8 +13,7 @@ namespace SG {
 
         private void Awake()
         {
-            // Врагу не нужен player-специфичный AnimatorHandler (он завязан на
-            // InputHandler/PlayerManager через GetComponentInParent) — работаем
+            // Врагу player-специфичный AnimatorHandler не нужен — работаем
             // напрямую со стандартным Animator.
             anim = GetComponent<Animator>();
         }
@@ -31,17 +30,13 @@ namespace SG {
             return maxHealth;
         }
 
-        // БЫЛО: void. Теперь возвращает, ПРОШЁЛ ли урон (false — цель уже
-        // мертва). Нужно хитстопу в DamageCollider: удар по трупу не должен
-        // замораживать игру, а по isDead после вызова DamageCollider решает,
-        // сыграть ли удлинённый kill-хитстоп. Смена void -> bool обратно
-        // совместима по исходникам — старые вызовы вида
-        // enemyStats.TakeDamage(x); компилируются без изменений.
+        // Возвращает, прошёл ли урон (false — цель уже мертва). Нужно
+        // хитстопу в DamageCollider. Старые вызовы вида TakeDamage(x);
+        // компилируются как раньше — результат просто игнорируется.
         public bool TakeDamage(int damage)
         {
-            // Мёртвый враг больше не реагирует на удары: без этой проверки
-            // каждый удар по трупу заново проигрывал CrossFade("Dead") и
-            // труп "дёргался", а currentHealth уходил в минус.
+            // Труп не реагирует: без guard'а каждый удар заново играл "Dead",
+            // а currentHealth уходил в минус.
             if (isDead)
                 return false;
 
@@ -56,9 +51,6 @@ namespace SG {
             }
             else
             {
-                // else, а не два независимых if: при смертельном ударе раньше
-                // в одном кадре запускались ДВА CrossFade подряд
-                // (BetaDamage, затем Dead) — лишний вызов и грязный бленд.
                 anim.SetBool("isInteracting", true);
                 anim.CrossFade("BetaDamage", 0.2f);
             }

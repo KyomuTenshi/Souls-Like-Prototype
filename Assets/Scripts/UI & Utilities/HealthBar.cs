@@ -8,10 +8,8 @@ namespace SG {
 
         private void Awake()
         {
-            // Awake, а не Start: PlayerStats.Start() дёргает SetMaxHealth(),
-            // а порядок Start() между скриптами Unity не гарантирует.
-            // Все Awake() выполняются раньше любого Start() — здесь slider
-            // гарантированно готов к первому обращению.
+            // Awake, а не Start: PlayerStats.Start() дёргает бар, а порядок
+            // Start() между скриптами не гарантирован.
             if (slider == null)
             {
                 slider = GetComponent<Slider>();

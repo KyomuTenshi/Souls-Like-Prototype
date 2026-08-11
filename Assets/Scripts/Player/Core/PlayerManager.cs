@@ -25,9 +25,7 @@ namespace SG {
 
         static readonly int IsInteractingHash = Animator.StringToHash("isInteracting");
         static readonly int CanDoComboHash = Animator.StringToHash("canDoCombo");
-        // Параметр в Animator должен называться РОВНО "IsInAir" (регистр
-        // важен). Проверь вкладку Parameters. Заодно: слой с именем isInAir
-        // в Animator Controller — лишний, параметры на слоях не живут.
+        // Параметр в Animator должен называться ровно "IsInAir" (регистр важен).
         static readonly int IsInAirHash = Animator.StringToHash("IsInAir");
 
         private void Awake()
@@ -71,11 +69,9 @@ namespace SG {
             {
                 cameraHandler.FollowTarget(delta);
 
-                // При открытом инвентаре камеру мышью не крутим: курсор в
-                // этот момент разлочен (см. UIManager.OpenSelectWindow) и
-                // нужен для кликов по UI — его путь к кнопке вращал бы
-                // камеру за меню. Слежение (FollowTarget) оставляем:
-                // с открытым меню можно ходить, камера должна догонять.
+                // При открытом инвентаре камеру не крутим: курсор разлочен
+                // для кликов по UI, его путь к кнопке вращал бы камеру за
+                // меню. Слежение оставляем — с открытым меню можно ходить.
                 if (!inputHandler.inventoryFlag)
                 {
                     cameraHandler.HandleCameraRotation(delta, inputHandler.mouseX, inputHandler.mouseY);
@@ -84,13 +80,11 @@ namespace SG {
 
             inputHandler.rollFlag = false;
             inputHandler.sprintFlag = false;
-            inputHandler.rb_Input = false;
-            inputHandler.rt_Input = false;
-            inputHandler.d_Pad_Up = false;
-            inputHandler.d_Pad_Down = false;
-            inputHandler.d_Pad_Right = false;
-            inputHandler.d_Pad_Left = false;
-            inputHandler.a_Input = false;
+            inputHandler.lightAttack_Input = false;
+            inputHandler.heavyAttack_Input = false;
+            inputHandler.quickSlotRight_Input = false;
+            inputHandler.quickSlotLeft_Input = false;
+            inputHandler.interact_Input = false;
             inputHandler.jump_Input = false;
             inputHandler.inventory_Input = false;
 
@@ -125,7 +119,7 @@ namespace SG {
                         interactableUIGameObject.SetActive(true);
                     }
 
-                    if (inputHandler.a_Input)
+                    if (inputHandler.interact_Input)
                     {
                         interactableObject.Interact(this);
                     }
@@ -138,9 +132,9 @@ namespace SG {
                     interactableUIGameObject.SetActive(false);
                 }
 
-                // Ручное скрытие по нажатию — быстрый способ отмахнуться от
-                // уведомления, не обязательный, раз есть таймер ниже.
-                if (itemInteractableGameObject != null && inputHandler.a_Input)
+                // Ручное скрытие уведомления по нажатию — быстрый способ
+                // отмахнуться, не дожидаясь таймера.
+                if (itemInteractableGameObject != null && inputHandler.interact_Input)
                 {
                     if (itemNotificationCoroutine != null)
                     {
@@ -152,11 +146,8 @@ namespace SG {
             }
         }
 
-        // Единая точка показа уведомления "подобрано: <название>" вместе с
-        // иконкой. Раньше WeaponPickUp напрямую делал GetComponent<TMP>/
-        // <RawImage> на itemInteractableGameObject — работает только если
-        // текст и картинка лежат прямо на этом объекте, а не на дочерних
-        // (обычный случай в Canvas-иерархии), и никогда не скрывалось само.
+        // Единая точка показа "подобрано: <название>" с иконкой; само
+        // скрывается по таймеру.
         public void ShowItemPickupNotification(string itemName, Sprite itemIcon)
         {
             if (interactableUI != null)
@@ -166,8 +157,6 @@ namespace SG {
                     interactableUI.itemText.text = itemName;
                 }
 
-                // itemIcon может быть не назначен на ассете оружия — тогда
-                // просто не трогаем картинку, а не роняем NRE.
                 if (interactableUI.itemImage != null && itemIcon != null)
                 {
                     interactableUI.itemImage.texture = itemIcon.texture;

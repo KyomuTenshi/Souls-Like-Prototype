@@ -13,12 +13,9 @@ namespace SG {
 
         public WeaponItem unarmedWeapon;
 
-        // БЫЛО: weaponInRightHandSlots / weaponInLeftHandSlots (без "s" после
-        // weapon). EquipmentWindowUI — и все будущие уроки туториала —
-        // обращаются к weaponsInRightHandSlots / weaponsInLeftHandSlots, из-за
-        // расхождения проект не компилировался. Переименовано под туториал.
-        // FormerlySerializedAs сохраняет уже назначенные в инспекторе оружия —
-        // Unity подхватит старое сериализованное имя при первой загрузке.
+        // Имена — под туториал (EquipmentWindowUI и будущие уроки обращаются
+        // именно к ним). FormerlySerializedAs сохраняет оружия, назначенные
+        // в инспекторе под старым именем.
         [FormerlySerializedAs("weaponInRightHandSlots")]
         public WeaponItem[] weaponsInRightHandSlots = new WeaponItem[2];
         [FormerlySerializedAs("weaponInLeftHandSlots")]
@@ -27,10 +24,8 @@ namespace SG {
         public int currentRightWeaponIndex = -1;
         public int currentLeftWeaponIndex = -1;
 
-        // Инициализация прямо тут (а не через Awake): список должен быть
-        // готов к первому Add() даже если что-то подберёт оружие раньше,
-        // чем этот компонент пройдёт Awake — например, если подбор случится
-        // в тот же кадр, что и Instantiate игрока.
+        // Инициализация на месте, не в Awake: список должен быть готов к
+        // первому Add(), даже если подбор случится раньше Awake компонента.
         public List<WeaponItem> weaponsInventory = new List<WeaponItem>();
 
         private void Awake()
@@ -46,6 +41,9 @@ namespace SG {
             weaponSlotManager.LoadWeaponOnSlot(rightWeapon, false);
             weaponSlotManager.LoadWeaponOnSlot(leftWeapon, true);
 
+            // Повтор через кадр: первый проход может пройти до готовности
+            // Animator/UI (порядок инициализации сцены), второй гарантирует
+            // корректные idle-слои и иконки квик-слотов.
             yield return null;
 
             weaponSlotManager.LoadWeaponOnSlot(rightWeapon, false);
@@ -62,9 +60,8 @@ namespace SG {
             ChangeWeapon(true);
         }
 
-        // Единая логика цикла для обеих рук вместо двух копий лестницы if'ов.
-        // Пустые слоты пропускаются за ОДНО нажатие. Цикл: слот 0 -> слот 1
-        // -> ... -> unarmed -> слот 0.
+        // Единая логика цикла для обеих рук. Пустые слоты пропускаются за
+        // одно нажатие. Цикл: слот 0 -> слот 1 -> ... -> unarmed -> слот 0.
         private void ChangeWeapon(bool isLeft)
         {
             WeaponItem[] slots = isLeft ? weaponsInLeftHandSlots : weaponsInRightHandSlots;

@@ -94,35 +94,35 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             ""actions"": [
                 {
                     ""name"": ""Movement"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""61716f41-7afa-44db-b9f6-41298ce289f8"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""Camera"",
-                    ""type"": ""PassThrough"",
+                    ""type"": ""Value"",
                     ""id"": ""cdc1f4a0-6f46-4280-a28f-539351161204"",
                     ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Lock On Target Left"",
+                    ""name"": ""LockOnTargetRight"",
                     ""type"": ""Button"",
-                    ""id"": ""b27d7099-aa2e-4328-8adc-e383cc5f7382"",
+                    ""id"": ""915e1765-a7a2-45e0-8b53-61bdfbaee47b"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Lock On Target Right"",
+                    ""name"": ""LockOnTargetLeft"",
                     ""type"": ""Button"",
-                    ""id"": ""915e1765-a7a2-45e0-8b53-61bdfbaee47b"",
+                    ""id"": ""b27d7099-aa2e-4328-8adc-e383cc5f7382"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -147,7 +147,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/w"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -158,7 +158,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/s"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -169,7 +169,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -180,10 +180,21 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""faf9d9a2-deb0-4187-b0ec-c0527d5b7671"",
+                    ""path"": ""<Gamepad>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -191,7 +202,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Mouse>/delta"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Camera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4fe600bf-b424-4041-9a55-03085c36d6cf"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": ""ScaleVector2(x=20,y=12)"",
+                    ""groups"": "";Gamepad"",
                     ""action"": ""Camera"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -199,22 +221,44 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""2f5a5458-0c7b-4997-83e7-7df084fe397d"",
-                    ""path"": ""<Keyboard>/1"",
+                    ""path"": ""<Keyboard>/z"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Lock On Target Left"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""LockOnTargetLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""02ae90f6-7134-49a6-b166-7aa96c173ec5"",
+                    ""path"": ""<Gamepad>/rightStick/left"",
+                    ""interactions"": ""Press(pressPoint=0.7)"",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""LockOnTargetLeft"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""612adc81-f327-4e4d-90e9-4730e51ee9ea"",
-                    ""path"": ""<Keyboard>/2"",
+                    ""path"": ""<Keyboard>/c"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Lock On Target Right"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""LockOnTargetRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""808edbb2-480d-40c3-9f46-777a88d2941f"",
+                    ""path"": ""<Gamepad>/rightStick/right"",
+                    ""interactions"": ""Press(pressPoint=0.7)"",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""LockOnTargetRight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -225,7 +269,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             ""id"": ""78863c96-14ae-4747-a50d-2b770d66e42a"",
             ""actions"": [
                 {
-                    ""name"": ""Roll"",
+                    ""name"": ""Dodge"",
                     ""type"": ""Button"",
                     ""id"": ""bc9cf8ee-5b8c-42c5-85ed-153eea8a0549"",
                     ""expectedControlType"": """",
@@ -234,7 +278,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""RB"",
+                    ""name"": ""LightAttack"",
                     ""type"": ""Button"",
                     ""id"": ""f0149d1e-aac9-4c38-b8ae-f871c9f64e35"",
                     ""expectedControlType"": """",
@@ -243,7 +287,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""RT"",
+                    ""name"": ""HeavyAttack"",
                     ""type"": ""Button"",
                     ""id"": ""667260cc-7c9f-4141-90c5-53e357aad1dd"",
                     ""expectedControlType"": """",
@@ -252,7 +296,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Interactable"",
+                    ""name"": ""Interact"",
                     ""type"": ""Button"",
                     ""id"": ""23fcc45e-56e0-4740-8e7e-ea2db76ca675"",
                     ""expectedControlType"": """",
@@ -295,41 +339,85 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Roll"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Dodge"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""893d2f23-b2e7-42a0-b982-5bebaf8a92f9"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Dodge"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""6f54cc1a-bfcd-4593-ba87-407e183621d8"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""RB"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""LightAttack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fbd4b370-43d3-40e5-8de3-ed7e2d018679"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""LightAttack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""d1922edb-fafe-409a-86bc-ed669c026999"",
-                    ""path"": ""<Keyboard>/r"",
+                    ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""RT"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""HeavyAttack"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""11b2b0b8-c8d0-401b-b6b8-5e3e683be136"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""HeavyAttack"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
                     ""id"": ""d68bbbee-a8fa-474e-a04b-42fd726217bc"",
-                    ""path"": ""<Keyboard>/x"",
+                    ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Interactable"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""02adb090-7030-4b5e-bacd-70dc61489b6a"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -339,7 +427,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/space"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e5c253f9-ce52-49ac-b9b0-1c9d3ee5c165"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
                     ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -350,7 +449,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/i"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Inventory"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2660f8bd-51e6-4409-b1af-8b553ed3ff82"",
+                    ""path"": ""<Gamepad>/start"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
                     ""action"": ""Inventory"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -361,7 +471,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/f"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""LockOn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e556292c-a43e-4016-a79f-db282755732d"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
                     ""action"": ""LockOn"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -369,11 +490,11 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             ]
         },
         {
-            ""name"": ""Player Quist Slots"",
+            ""name"": ""Player Quick Slots"",
             ""id"": ""dc5b98cd-81f7-4b18-ad55-61a2da488209"",
             ""actions"": [
                 {
-                    ""name"": ""DPadRight"",
+                    ""name"": ""QuickSlotRight"",
                     ""type"": ""Button"",
                     ""id"": ""d20eb8d7-b8e3-4b83-a8d5-d535f255f96a"",
                     ""expectedControlType"": """",
@@ -382,7 +503,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""DPadLeft"",
+                    ""name"": ""QuickSlotLeft"",
                     ""type"": ""Button"",
                     ""id"": ""0df790ab-8969-42dd-a851-654e5a79c0ad"",
                     ""expectedControlType"": """",
@@ -398,8 +519,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""DPadRight"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""QuickSlotRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d8e2e3f8-df7e-4f87-9ce6-4c55911a7266"",
+                    ""path"": ""<Gamepad>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""QuickSlotRight"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -409,42 +541,81 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/leftArrow"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""DPadLeft"",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""QuickSlotLeft"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f028f98b-75bc-4a46-b568-479cac7b426b"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Gamepad"",
+                    ""action"": ""QuickSlotLeft"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
             ]
         }
     ],
-    ""controlSchemes"": []
+    ""controlSchemes"": [
+        {
+            ""name"": ""Keyboard&Mouse"",
+            ""bindingGroup"": ""Keyboard&Mouse"",
+            ""devices"": [
+                {
+                    ""devicePath"": ""<Keyboard>"",
+                    ""isOptional"": false,
+                    ""isOR"": false
+                },
+                {
+                    ""devicePath"": ""<Mouse>"",
+                    ""isOptional"": false,
+                    ""isOR"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Gamepad"",
+            ""bindingGroup"": ""Gamepad"",
+            ""devices"": [
+                {
+                    ""devicePath"": ""<Gamepad>"",
+                    ""isOptional"": false,
+                    ""isOR"": false
+                }
+            ]
+        }
+    ]
 }");
         // Player Movement
         m_PlayerMovement = asset.FindActionMap("Player Movement", throwIfNotFound: true);
         m_PlayerMovement_Movement = m_PlayerMovement.FindAction("Movement", throwIfNotFound: true);
         m_PlayerMovement_Camera = m_PlayerMovement.FindAction("Camera", throwIfNotFound: true);
-        m_PlayerMovement_LockOnTargetLeft = m_PlayerMovement.FindAction("Lock On Target Left", throwIfNotFound: true);
-        m_PlayerMovement_LockOnTargetRight = m_PlayerMovement.FindAction("Lock On Target Right", throwIfNotFound: true);
+        m_PlayerMovement_LockOnTargetRight = m_PlayerMovement.FindAction("LockOnTargetRight", throwIfNotFound: true);
+        m_PlayerMovement_LockOnTargetLeft = m_PlayerMovement.FindAction("LockOnTargetLeft", throwIfNotFound: true);
         // Player Actions
         m_PlayerActions = asset.FindActionMap("Player Actions", throwIfNotFound: true);
-        m_PlayerActions_Roll = m_PlayerActions.FindAction("Roll", throwIfNotFound: true);
-        m_PlayerActions_RB = m_PlayerActions.FindAction("RB", throwIfNotFound: true);
-        m_PlayerActions_RT = m_PlayerActions.FindAction("RT", throwIfNotFound: true);
-        m_PlayerActions_Interactable = m_PlayerActions.FindAction("Interactable", throwIfNotFound: true);
+        m_PlayerActions_Dodge = m_PlayerActions.FindAction("Dodge", throwIfNotFound: true);
+        m_PlayerActions_LightAttack = m_PlayerActions.FindAction("LightAttack", throwIfNotFound: true);
+        m_PlayerActions_HeavyAttack = m_PlayerActions.FindAction("HeavyAttack", throwIfNotFound: true);
+        m_PlayerActions_Interact = m_PlayerActions.FindAction("Interact", throwIfNotFound: true);
         m_PlayerActions_Jump = m_PlayerActions.FindAction("Jump", throwIfNotFound: true);
         m_PlayerActions_Inventory = m_PlayerActions.FindAction("Inventory", throwIfNotFound: true);
         m_PlayerActions_LockOn = m_PlayerActions.FindAction("LockOn", throwIfNotFound: true);
-        // Player Quist Slots
-        m_PlayerQuistSlots = asset.FindActionMap("Player Quist Slots", throwIfNotFound: true);
-        m_PlayerQuistSlots_DPadRight = m_PlayerQuistSlots.FindAction("DPadRight", throwIfNotFound: true);
-        m_PlayerQuistSlots_DPadLeft = m_PlayerQuistSlots.FindAction("DPadLeft", throwIfNotFound: true);
+        // Player Quick Slots
+        m_PlayerQuickSlots = asset.FindActionMap("Player Quick Slots", throwIfNotFound: true);
+        m_PlayerQuickSlots_QuickSlotRight = m_PlayerQuickSlots.FindAction("QuickSlotRight", throwIfNotFound: true);
+        m_PlayerQuickSlots_QuickSlotLeft = m_PlayerQuickSlots.FindAction("QuickSlotLeft", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
     {
         UnityEngine.Debug.Assert(!m_PlayerMovement.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerMovement.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_PlayerActions.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerActions.Disable() has not been called.");
-        UnityEngine.Debug.Assert(!m_PlayerQuistSlots.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerQuistSlots.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_PlayerQuickSlots.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerQuickSlots.Disable() has not been called.");
     }
 
     /// <summary>
@@ -522,8 +693,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private List<IPlayerMovementActions> m_PlayerMovementActionsCallbackInterfaces = new List<IPlayerMovementActions>();
     private readonly InputAction m_PlayerMovement_Movement;
     private readonly InputAction m_PlayerMovement_Camera;
-    private readonly InputAction m_PlayerMovement_LockOnTargetLeft;
     private readonly InputAction m_PlayerMovement_LockOnTargetRight;
+    private readonly InputAction m_PlayerMovement_LockOnTargetLeft;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player Movement".
     /// </summary>
@@ -544,13 +715,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Camera => m_Wrapper.m_PlayerMovement_Camera;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerMovement/LockOnTargetLeft".
-        /// </summary>
-        public InputAction @LockOnTargetLeft => m_Wrapper.m_PlayerMovement_LockOnTargetLeft;
-        /// <summary>
         /// Provides access to the underlying input action "PlayerMovement/LockOnTargetRight".
         /// </summary>
         public InputAction @LockOnTargetRight => m_Wrapper.m_PlayerMovement_LockOnTargetRight;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerMovement/LockOnTargetLeft".
+        /// </summary>
+        public InputAction @LockOnTargetLeft => m_Wrapper.m_PlayerMovement_LockOnTargetLeft;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -583,12 +754,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Camera.started += instance.OnCamera;
             @Camera.performed += instance.OnCamera;
             @Camera.canceled += instance.OnCamera;
-            @LockOnTargetLeft.started += instance.OnLockOnTargetLeft;
-            @LockOnTargetLeft.performed += instance.OnLockOnTargetLeft;
-            @LockOnTargetLeft.canceled += instance.OnLockOnTargetLeft;
             @LockOnTargetRight.started += instance.OnLockOnTargetRight;
             @LockOnTargetRight.performed += instance.OnLockOnTargetRight;
             @LockOnTargetRight.canceled += instance.OnLockOnTargetRight;
+            @LockOnTargetLeft.started += instance.OnLockOnTargetLeft;
+            @LockOnTargetLeft.performed += instance.OnLockOnTargetLeft;
+            @LockOnTargetLeft.canceled += instance.OnLockOnTargetLeft;
         }
 
         /// <summary>
@@ -606,12 +777,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Camera.started -= instance.OnCamera;
             @Camera.performed -= instance.OnCamera;
             @Camera.canceled -= instance.OnCamera;
-            @LockOnTargetLeft.started -= instance.OnLockOnTargetLeft;
-            @LockOnTargetLeft.performed -= instance.OnLockOnTargetLeft;
-            @LockOnTargetLeft.canceled -= instance.OnLockOnTargetLeft;
             @LockOnTargetRight.started -= instance.OnLockOnTargetRight;
             @LockOnTargetRight.performed -= instance.OnLockOnTargetRight;
             @LockOnTargetRight.canceled -= instance.OnLockOnTargetRight;
+            @LockOnTargetLeft.started -= instance.OnLockOnTargetLeft;
+            @LockOnTargetLeft.performed -= instance.OnLockOnTargetLeft;
+            @LockOnTargetLeft.canceled -= instance.OnLockOnTargetLeft;
         }
 
         /// <summary>
@@ -649,10 +820,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     // Player Actions
     private readonly InputActionMap m_PlayerActions;
     private List<IPlayerActionsActions> m_PlayerActionsActionsCallbackInterfaces = new List<IPlayerActionsActions>();
-    private readonly InputAction m_PlayerActions_Roll;
-    private readonly InputAction m_PlayerActions_RB;
-    private readonly InputAction m_PlayerActions_RT;
-    private readonly InputAction m_PlayerActions_Interactable;
+    private readonly InputAction m_PlayerActions_Dodge;
+    private readonly InputAction m_PlayerActions_LightAttack;
+    private readonly InputAction m_PlayerActions_HeavyAttack;
+    private readonly InputAction m_PlayerActions_Interact;
     private readonly InputAction m_PlayerActions_Jump;
     private readonly InputAction m_PlayerActions_Inventory;
     private readonly InputAction m_PlayerActions_LockOn;
@@ -668,21 +839,21 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// </summary>
         public PlayerActionsActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         /// <summary>
-        /// Provides access to the underlying input action "PlayerActions/Roll".
+        /// Provides access to the underlying input action "PlayerActions/Dodge".
         /// </summary>
-        public InputAction @Roll => m_Wrapper.m_PlayerActions_Roll;
+        public InputAction @Dodge => m_Wrapper.m_PlayerActions_Dodge;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerActions/RB".
+        /// Provides access to the underlying input action "PlayerActions/LightAttack".
         /// </summary>
-        public InputAction @RB => m_Wrapper.m_PlayerActions_RB;
+        public InputAction @LightAttack => m_Wrapper.m_PlayerActions_LightAttack;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerActions/RT".
+        /// Provides access to the underlying input action "PlayerActions/HeavyAttack".
         /// </summary>
-        public InputAction @RT => m_Wrapper.m_PlayerActions_RT;
+        public InputAction @HeavyAttack => m_Wrapper.m_PlayerActions_HeavyAttack;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerActions/Interactable".
+        /// Provides access to the underlying input action "PlayerActions/Interact".
         /// </summary>
-        public InputAction @Interactable => m_Wrapper.m_PlayerActions_Interactable;
+        public InputAction @Interact => m_Wrapper.m_PlayerActions_Interact;
         /// <summary>
         /// Provides access to the underlying input action "PlayerActions/Jump".
         /// </summary>
@@ -721,18 +892,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         {
             if (instance == null || m_Wrapper.m_PlayerActionsActionsCallbackInterfaces.Contains(instance)) return;
             m_Wrapper.m_PlayerActionsActionsCallbackInterfaces.Add(instance);
-            @Roll.started += instance.OnRoll;
-            @Roll.performed += instance.OnRoll;
-            @Roll.canceled += instance.OnRoll;
-            @RB.started += instance.OnRB;
-            @RB.performed += instance.OnRB;
-            @RB.canceled += instance.OnRB;
-            @RT.started += instance.OnRT;
-            @RT.performed += instance.OnRT;
-            @RT.canceled += instance.OnRT;
-            @Interactable.started += instance.OnInteractable;
-            @Interactable.performed += instance.OnInteractable;
-            @Interactable.canceled += instance.OnInteractable;
+            @Dodge.started += instance.OnDodge;
+            @Dodge.performed += instance.OnDodge;
+            @Dodge.canceled += instance.OnDodge;
+            @LightAttack.started += instance.OnLightAttack;
+            @LightAttack.performed += instance.OnLightAttack;
+            @LightAttack.canceled += instance.OnLightAttack;
+            @HeavyAttack.started += instance.OnHeavyAttack;
+            @HeavyAttack.performed += instance.OnHeavyAttack;
+            @HeavyAttack.canceled += instance.OnHeavyAttack;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
             @Jump.started += instance.OnJump;
             @Jump.performed += instance.OnJump;
             @Jump.canceled += instance.OnJump;
@@ -753,18 +924,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="PlayerActionsActions" />
         private void UnregisterCallbacks(IPlayerActionsActions instance)
         {
-            @Roll.started -= instance.OnRoll;
-            @Roll.performed -= instance.OnRoll;
-            @Roll.canceled -= instance.OnRoll;
-            @RB.started -= instance.OnRB;
-            @RB.performed -= instance.OnRB;
-            @RB.canceled -= instance.OnRB;
-            @RT.started -= instance.OnRT;
-            @RT.performed -= instance.OnRT;
-            @RT.canceled -= instance.OnRT;
-            @Interactable.started -= instance.OnInteractable;
-            @Interactable.performed -= instance.OnInteractable;
-            @Interactable.canceled -= instance.OnInteractable;
+            @Dodge.started -= instance.OnDodge;
+            @Dodge.performed -= instance.OnDodge;
+            @Dodge.canceled -= instance.OnDodge;
+            @LightAttack.started -= instance.OnLightAttack;
+            @LightAttack.performed -= instance.OnLightAttack;
+            @LightAttack.canceled -= instance.OnLightAttack;
+            @HeavyAttack.started -= instance.OnHeavyAttack;
+            @HeavyAttack.performed -= instance.OnHeavyAttack;
+            @HeavyAttack.canceled -= instance.OnHeavyAttack;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
             @Jump.started -= instance.OnJump;
             @Jump.performed -= instance.OnJump;
             @Jump.canceled -= instance.OnJump;
@@ -808,34 +979,34 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     /// </summary>
     public PlayerActionsActions @PlayerActions => new PlayerActionsActions(this);
 
-    // Player Quist Slots
-    private readonly InputActionMap m_PlayerQuistSlots;
-    private List<IPlayerQuistSlotsActions> m_PlayerQuistSlotsActionsCallbackInterfaces = new List<IPlayerQuistSlotsActions>();
-    private readonly InputAction m_PlayerQuistSlots_DPadRight;
-    private readonly InputAction m_PlayerQuistSlots_DPadLeft;
+    // Player Quick Slots
+    private readonly InputActionMap m_PlayerQuickSlots;
+    private List<IPlayerQuickSlotsActions> m_PlayerQuickSlotsActionsCallbackInterfaces = new List<IPlayerQuickSlotsActions>();
+    private readonly InputAction m_PlayerQuickSlots_QuickSlotRight;
+    private readonly InputAction m_PlayerQuickSlots_QuickSlotLeft;
     /// <summary>
-    /// Provides access to input actions defined in input action map "Player Quist Slots".
+    /// Provides access to input actions defined in input action map "Player Quick Slots".
     /// </summary>
-    public struct PlayerQuistSlotsActions
+    public struct PlayerQuickSlotsActions
     {
         private @PlayerControls m_Wrapper;
 
         /// <summary>
         /// Construct a new instance of the input action map wrapper class.
         /// </summary>
-        public PlayerQuistSlotsActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        public PlayerQuickSlotsActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         /// <summary>
-        /// Provides access to the underlying input action "PlayerQuistSlots/DPadRight".
+        /// Provides access to the underlying input action "PlayerQuickSlots/QuickSlotRight".
         /// </summary>
-        public InputAction @DPadRight => m_Wrapper.m_PlayerQuistSlots_DPadRight;
+        public InputAction @QuickSlotRight => m_Wrapper.m_PlayerQuickSlots_QuickSlotRight;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerQuistSlots/DPadLeft".
+        /// Provides access to the underlying input action "PlayerQuickSlots/QuickSlotLeft".
         /// </summary>
-        public InputAction @DPadLeft => m_Wrapper.m_PlayerQuistSlots_DPadLeft;
+        public InputAction @QuickSlotLeft => m_Wrapper.m_PlayerQuickSlots_QuickSlotLeft;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
-        public InputActionMap Get() { return m_Wrapper.m_PlayerQuistSlots; }
+        public InputActionMap Get() { return m_Wrapper.m_PlayerQuickSlots; }
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
         public void Enable() { Get().Enable(); }
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
@@ -843,9 +1014,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
         public bool enabled => Get().enabled;
         /// <summary>
-        /// Implicitly converts an <see ref="PlayerQuistSlotsActions" /> to an <see ref="InputActionMap" /> instance.
+        /// Implicitly converts an <see ref="PlayerQuickSlotsActions" /> to an <see ref="InputActionMap" /> instance.
         /// </summary>
-        public static implicit operator InputActionMap(PlayerQuistSlotsActions set) { return set.Get(); }
+        public static implicit operator InputActionMap(PlayerQuickSlotsActions set) { return set.Get(); }
         /// <summary>
         /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
         /// </summary>
@@ -853,17 +1024,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <remarks>
         /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
         /// </remarks>
-        /// <seealso cref="PlayerQuistSlotsActions" />
-        public void AddCallbacks(IPlayerQuistSlotsActions instance)
+        /// <seealso cref="PlayerQuickSlotsActions" />
+        public void AddCallbacks(IPlayerQuickSlotsActions instance)
         {
-            if (instance == null || m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Contains(instance)) return;
-            m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Add(instance);
-            @DPadRight.started += instance.OnDPadRight;
-            @DPadRight.performed += instance.OnDPadRight;
-            @DPadRight.canceled += instance.OnDPadRight;
-            @DPadLeft.started += instance.OnDPadLeft;
-            @DPadLeft.performed += instance.OnDPadLeft;
-            @DPadLeft.canceled += instance.OnDPadLeft;
+            if (instance == null || m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Add(instance);
+            @QuickSlotRight.started += instance.OnQuickSlotRight;
+            @QuickSlotRight.performed += instance.OnQuickSlotRight;
+            @QuickSlotRight.canceled += instance.OnQuickSlotRight;
+            @QuickSlotLeft.started += instance.OnQuickSlotLeft;
+            @QuickSlotLeft.performed += instance.OnQuickSlotLeft;
+            @QuickSlotLeft.canceled += instance.OnQuickSlotLeft;
         }
 
         /// <summary>
@@ -872,24 +1043,24 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <remarks>
         /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
         /// </remarks>
-        /// <seealso cref="PlayerQuistSlotsActions" />
-        private void UnregisterCallbacks(IPlayerQuistSlotsActions instance)
+        /// <seealso cref="PlayerQuickSlotsActions" />
+        private void UnregisterCallbacks(IPlayerQuickSlotsActions instance)
         {
-            @DPadRight.started -= instance.OnDPadRight;
-            @DPadRight.performed -= instance.OnDPadRight;
-            @DPadRight.canceled -= instance.OnDPadRight;
-            @DPadLeft.started -= instance.OnDPadLeft;
-            @DPadLeft.performed -= instance.OnDPadLeft;
-            @DPadLeft.canceled -= instance.OnDPadLeft;
+            @QuickSlotRight.started -= instance.OnQuickSlotRight;
+            @QuickSlotRight.performed -= instance.OnQuickSlotRight;
+            @QuickSlotRight.canceled -= instance.OnQuickSlotRight;
+            @QuickSlotLeft.started -= instance.OnQuickSlotLeft;
+            @QuickSlotLeft.performed -= instance.OnQuickSlotLeft;
+            @QuickSlotLeft.canceled -= instance.OnQuickSlotLeft;
         }
 
         /// <summary>
-        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PlayerQuistSlotsActions.UnregisterCallbacks(IPlayerQuistSlotsActions)" />.
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PlayerQuickSlotsActions.UnregisterCallbacks(IPlayerQuickSlotsActions)" />.
         /// </summary>
-        /// <seealso cref="PlayerQuistSlotsActions.UnregisterCallbacks(IPlayerQuistSlotsActions)" />
-        public void RemoveCallbacks(IPlayerQuistSlotsActions instance)
+        /// <seealso cref="PlayerQuickSlotsActions.UnregisterCallbacks(IPlayerQuickSlotsActions)" />
+        public void RemoveCallbacks(IPlayerQuickSlotsActions instance)
         {
-            if (m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Remove(instance))
+            if (m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Remove(instance))
                 UnregisterCallbacks(instance);
         }
 
@@ -899,21 +1070,47 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <remarks>
         /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
         /// </remarks>
-        /// <seealso cref="PlayerQuistSlotsActions.AddCallbacks(IPlayerQuistSlotsActions)" />
-        /// <seealso cref="PlayerQuistSlotsActions.RemoveCallbacks(IPlayerQuistSlotsActions)" />
-        /// <seealso cref="PlayerQuistSlotsActions.UnregisterCallbacks(IPlayerQuistSlotsActions)" />
-        public void SetCallbacks(IPlayerQuistSlotsActions instance)
+        /// <seealso cref="PlayerQuickSlotsActions.AddCallbacks(IPlayerQuickSlotsActions)" />
+        /// <seealso cref="PlayerQuickSlotsActions.RemoveCallbacks(IPlayerQuickSlotsActions)" />
+        /// <seealso cref="PlayerQuickSlotsActions.UnregisterCallbacks(IPlayerQuickSlotsActions)" />
+        public void SetCallbacks(IPlayerQuickSlotsActions instance)
         {
-            foreach (var item in m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces)
+            foreach (var item in m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces)
                 UnregisterCallbacks(item);
-            m_Wrapper.m_PlayerQuistSlotsActionsCallbackInterfaces.Clear();
+            m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Clear();
             AddCallbacks(instance);
         }
     }
     /// <summary>
-    /// Provides a new <see cref="PlayerQuistSlotsActions" /> instance referencing this action map.
+    /// Provides a new <see cref="PlayerQuickSlotsActions" /> instance referencing this action map.
     /// </summary>
-    public PlayerQuistSlotsActions @PlayerQuistSlots => new PlayerQuistSlotsActions(this);
+    public PlayerQuickSlotsActions @PlayerQuickSlots => new PlayerQuickSlotsActions(this);
+    private int m_KeyboardMouseSchemeIndex = -1;
+    /// <summary>
+    /// Provides access to the input control scheme.
+    /// </summary>
+    /// <seealso cref="UnityEngine.InputSystem.InputControlScheme" />
+    public InputControlScheme KeyboardMouseScheme
+    {
+        get
+        {
+            if (m_KeyboardMouseSchemeIndex == -1) m_KeyboardMouseSchemeIndex = asset.FindControlSchemeIndex("Keyboard&Mouse");
+            return asset.controlSchemes[m_KeyboardMouseSchemeIndex];
+        }
+    }
+    private int m_GamepadSchemeIndex = -1;
+    /// <summary>
+    /// Provides access to the input control scheme.
+    /// </summary>
+    /// <seealso cref="UnityEngine.InputSystem.InputControlScheme" />
+    public InputControlScheme GamepadScheme
+    {
+        get
+        {
+            if (m_GamepadSchemeIndex == -1) m_GamepadSchemeIndex = asset.FindControlSchemeIndex("Gamepad");
+            return asset.controlSchemes[m_GamepadSchemeIndex];
+        }
+    }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Movement" which allows adding and removing callbacks.
     /// </summary>
@@ -936,19 +1133,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCamera(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Lock On Target Left" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnLockOnTargetLeft(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "Lock On Target Right" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "LockOnTargetRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnLockOnTargetRight(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "LockOnTargetLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnLockOnTargetLeft(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Actions" which allows adding and removing callbacks.
@@ -958,33 +1155,33 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     public interface IPlayerActionsActions
     {
         /// <summary>
-        /// Method invoked when associated input action "Roll" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Dodge" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnRoll(InputAction.CallbackContext context);
+        void OnDodge(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "RB" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "LightAttack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnRB(InputAction.CallbackContext context);
+        void OnLightAttack(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "RT" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "HeavyAttack" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnRT(InputAction.CallbackContext context);
+        void OnHeavyAttack(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Interactable" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnInteractable(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Jump" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
@@ -1008,25 +1205,25 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         void OnLockOn(InputAction.CallbackContext context);
     }
     /// <summary>
-    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Quist Slots" which allows adding and removing callbacks.
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Quick Slots" which allows adding and removing callbacks.
     /// </summary>
-    /// <seealso cref="PlayerQuistSlotsActions.AddCallbacks(IPlayerQuistSlotsActions)" />
-    /// <seealso cref="PlayerQuistSlotsActions.RemoveCallbacks(IPlayerQuistSlotsActions)" />
-    public interface IPlayerQuistSlotsActions
+    /// <seealso cref="PlayerQuickSlotsActions.AddCallbacks(IPlayerQuickSlotsActions)" />
+    /// <seealso cref="PlayerQuickSlotsActions.RemoveCallbacks(IPlayerQuickSlotsActions)" />
+    public interface IPlayerQuickSlotsActions
     {
         /// <summary>
-        /// Method invoked when associated input action "DPadRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "QuickSlotRight" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnDPadRight(InputAction.CallbackContext context);
+        void OnQuickSlotRight(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "DPadLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "QuickSlotLeft" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnDPadLeft(InputAction.CallbackContext context);
+        void OnQuickSlotLeft(InputAction.CallbackContext context);
     }
 }

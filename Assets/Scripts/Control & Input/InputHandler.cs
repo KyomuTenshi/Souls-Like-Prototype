@@ -1,5 +1,6 @@
 // InputHandler.cs
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SG 
 {
@@ -11,20 +12,17 @@ namespace SG
         public float mouseX;
         public float mouseY;
 
-        public bool b_Input;
-        public bool a_Input;
-        public bool rb_Input;
-        public bool rt_Input;
+        public bool dodge_Input;
+        public bool lightAttack_Input;
+        public bool heavyAttack_Input;
+        public bool interact_Input;
         public bool jump_Input;
         public bool inventory_Input;
         public bool lockOn_Input;
-        public bool right_Stick_Left_Input;
-        public bool right_Stick_Right_Input;
-
-        public bool d_Pad_Up;
-        public bool d_Pad_Down;
-        public bool d_Pad_Left;
-        public bool d_Pad_Right;
+        public bool lockOnLeft_Input;
+        public bool lockOnRight_Input;
+        public bool quickSlotLeft_Input;
+        public bool quickSlotRight_Input;
 
         public bool rollFlag;
         public bool sprintFlag;
@@ -53,6 +51,11 @@ namespace SG
 
         Vector2 movementInput;
         Vector2 cameraInput;
+        // Камера получает ввод из двух источников с разной природой:
+        // mouse delta — это смещение ЗА КАДР (fps-независимо само по себе),
+        // стик — удерживаемое значение, которое прибавляется каждый кадр и
+        // потому зависит от fps. Флаг позволяет нормализовать только стик.
+        bool cameraInputIsAnalog;
 
         private void Awake()
         {
@@ -73,23 +76,27 @@ namespace SG
                 inputActions.PlayerMovement.Movement.performed += ctx => movementInput = ctx.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Movement.canceled += ctx => movementInput = Vector2.zero;
 
-                inputActions.PlayerMovement.Camera.performed += ctx => cameraInput = ctx.ReadValue<Vector2>();
+                inputActions.PlayerMovement.Camera.performed += ctx =>
+                {
+                    cameraInput = ctx.ReadValue<Vector2>();
+                    cameraInputIsAnalog = ctx.control.device is Gamepad;
+                };
                 inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
-                inputActions.PlayerActions.RB.performed += i => rb_Input = true;
-                inputActions.PlayerActions.RT.performed += i => rt_Input = true;
-                inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
+                inputActions.PlayerActions.LightAttack.performed += i => lightAttack_Input = true;
+                inputActions.PlayerActions.HeavyAttack.performed += i => heavyAttack_Input = true;
+                inputActions.PlayerActions.Interact.performed += i => interact_Input = true;
 
-                inputActions.PlayerQuistSlots.DPadRight.performed += i => d_Pad_Right = true;
-                inputActions.PlayerQuistSlots.DPadLeft.performed += i => d_Pad_Left = true;
+                inputActions.PlayerQuickSlots.QuickSlotRight.performed += i => quickSlotRight_Input = true;
+                inputActions.PlayerQuickSlots.QuickSlotLeft.performed += i => quickSlotLeft_Input = true;
 
                 inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
-                inputActions.PlayerActions.Inventory.performed += i => { inventory_Input = true; Debug.Log("Inventory pressed"); };
+                inputActions.PlayerActions.Inventory.performed += i => inventory_Input = true;
 
                 inputActions.PlayerActions.LockOn.performed += i => lockOn_Input = true;
 
-                inputActions.PlayerMovement.LockOnTargetLeft.performed += i => right_Stick_Left_Input = true;
-                inputActions.PlayerMovement.LockOnTargetRight.performed += i => right_Stick_Right_Input = true;
+                inputActions.PlayerMovement.LockOnTargetLeft.performed += i => lockOnLeft_Input = true;
+                inputActions.PlayerMovement.LockOnTargetRight.performed += i => lockOnRight_Input = true;
             }
 
             inputActions.Enable();
@@ -103,21 +110,21 @@ namespace SG
         public void TickInput(float delta)
         {
             HandleInventoryInput();
-
-            // ИСПРАВЛЕНО: метод объявлен как HandleMoveInput, а вызывался
-            // как MoveInput — несуществующее имя, ошибка компиляции.
             HandleMoveInput(delta);
 
             if (inventoryFlag)
             {
-                rb_Input = false;
-                rt_Input = false;
+                lightAttack_Input = false;
+                heavyAttack_Input = false;
                 jump_Input = false;
-                a_Input = false;
-                d_Pad_Left = false;
-                d_Pad_Right = false;
-                right_Stick_Left_Input = false;
-                right_Stick_Right_Input = false;
+                interact_Input = false;
+                quickSlotLeft_Input = false;
+                quickSlotRight_Input = false;
+                lockOnLeft_Input = false;
+                lockOnRight_Input = false;
+                // Без сброса нажатие lock-on при открытом меню "запоминалось"
+                // и срабатывало сразу после его закрытия.
+                lockOn_Input = false;
                 lightAttackBufferTimer = 0f;
                 heavyAttackBufferTimer = 0f;
                 rollBufferTimer = 0f;
@@ -129,7 +136,7 @@ namespace SG
 
             HandleRollInput(delta);
             HandleAttackInput(delta);
-            HandleQuackSlotsInput(delta);
+            HandleQuickSlotsInput(delta);
             HandleLockOnInput();
         }
 
@@ -139,15 +146,21 @@ namespace SG
             vertical = movementInput.y;
             moveAmount = Mathf.Clamp01(Mathf.Abs(horizontal) + Mathf.Abs(vertical));
 
-            mouseX = cameraInput.x;
-            mouseY = cameraInput.y;
+            // Стик нормализуем к эталонным 60 fps: CameraHandler прибавляет
+            // ввод к углу каждый кадр без deltaTime (для mouse delta это
+            // корректно), поэтому удерживаемый стик без нормализации крутил
+            // бы камеру тем быстрее, чем выше fps. Множители ScaleVector2
+            // в ассете (x=20, y=12) подобраны под 60 fps и остаются верными.
+            float cameraScale = cameraInputIsAnalog ? delta * 60f : 1f;
+            mouseX = cameraInput.x * cameraScale;
+            mouseY = cameraInput.y * cameraScale;
         }
 
         private void HandleRollInput(float delta)
         {
-            b_Input = inputActions.PlayerActions.Roll.IsPressed();
+            dodge_Input = inputActions.PlayerActions.Dodge.IsPressed();
 
-            if (b_Input)
+            if (dodge_Input)
             {
                 rollInputTimer += delta;
                 sprintFlag = true;
@@ -178,15 +191,15 @@ namespace SG
 
         private void HandleAttackInput(float delta)
         {
-            if (rb_Input)
+            if (lightAttack_Input)
             {
-                rb_Input = false;
+                lightAttack_Input = false;
                 lightAttackBufferTimer = attackBufferWindow;
             }
 
-            if (rt_Input)
+            if (heavyAttack_Input)
             {
-                rt_Input = false;
+                heavyAttack_Input = false;
                 heavyAttackBufferTimer = attackBufferWindow;
             }
 
@@ -234,16 +247,16 @@ namespace SG
             }
         }
 
-        private void HandleQuackSlotsInput(float delta)
+        private void HandleQuickSlotsInput(float delta)
         {
-            if (d_Pad_Right)
+            if (quickSlotRight_Input)
             {
-                d_Pad_Right = false;
+                quickSlotRight_Input = false;
                 playerInventory.ChangeRightWeapon();
             }
-            else if (d_Pad_Left)
+            else if (quickSlotLeft_Input)
             {
-                d_Pad_Left = false;
+                quickSlotLeft_Input = false;
                 playerInventory.ChangeLeftWeapon();
             }
         }
@@ -274,6 +287,9 @@ namespace SG
 
         private void HandleLockOnInput()
         {
+            if (cameraHandler == null)
+                return;
+
             if (lockOn_Input && lockOnFlag == false)
             {
                 lockOn_Input = false;
@@ -291,9 +307,9 @@ namespace SG
                 cameraHandler.ClearLockOnTargets();
             }
 
-            if (lockOnFlag && right_Stick_Left_Input)
+            if (lockOnFlag && lockOnLeft_Input)
             {
-                right_Stick_Left_Input = false;
+                lockOnLeft_Input = false;
                 cameraHandler.HandleLockOn();
                 if (cameraHandler.leftLockOnTarget != null)
                 {
@@ -301,9 +317,9 @@ namespace SG
                 }
             }
 
-            if (lockOnFlag && right_Stick_Right_Input)
+            if (lockOnFlag && lockOnRight_Input)
             {
-                right_Stick_Right_Input = false;
+                lockOnRight_Input = false;
                 cameraHandler.HandleLockOn();
                 if (cameraHandler.rightLockOnTarget != null)
                 {

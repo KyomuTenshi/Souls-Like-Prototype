@@ -1,7 +1,7 @@
 using UnityEngine;
 
-// Вне namespace SG — как в туториале, чтобы будущие уроки и уже настроенные
-// состояния в Animator Controller продолжали находить этот behaviour.
+// Вне namespace SG — как в туториале: уже настроенные состояния в Animator
+// Controller и будущие уроки находят behaviour по этому имени.
 public class ResetAnimatorBool : StateMachineBehaviour
 {
     public string targetBool;
@@ -12,11 +12,9 @@ public class ResetAnimatorBool : StateMachineBehaviour
 
     public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        // Однократная проверка: существует ли bool-параметр с ТОЧНО таким
-        // именем. Animator.SetBool сравнивает строку с учётом регистра, и
-        // опечатка вроде 'isinteracting' вместо 'isInteracting' раньше
-        // сыпала безликие варнинги "Parameter ... does not exist" каждый
-        // вход в состояние. Теперь ошибка одна, конкретная и с объектом.
+        // SetBool сравнивает имя с учётом регистра: опечатка в Target Bool
+        // иначе сыпала бы безликий варнинг на каждый вход в состояние.
+        // Проверяем один раз и ругаемся конкретно, с ссылкой на объект.
         if (!validated)
         {
             validated = true;
@@ -40,7 +38,7 @@ public class ResetAnimatorBool : StateMachineBehaviour
                 cachedHash = 0;
                 Debug.LogError(
                     $"ResetAnimatorBool: bool-параметр '{targetBool}' не найден в Animator '{animator.runtimeAnimatorController.name}'. " +
-                    "Проверь регистр букв (например, должно быть 'isInteracting') в поле Target Bool на состоянии с этим behaviour.",
+                    "Проверь регистр букв в поле Target Bool.",
                     animator);
             }
         }

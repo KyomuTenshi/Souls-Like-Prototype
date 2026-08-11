@@ -12,32 +12,25 @@ namespace SG {
         int horizontal;
         public bool canRotate;
 
-        // Кэш хэшей параметров Animator — эти два дёргаются чаще всего в проекте.
         static readonly int IsInteractingHash = Animator.StringToHash("isInteracting");
         static readonly int CanDoComboHash = Animator.StringToHash("canDoCombo");
 
-        // Момент normalizedTime (0..1), при котором для НЕ-Roll интеракций
-        // (Land, Pick Up и т.п.) управление возвращается игроку. 1 = ждать
-        // полный клип. Если "Land" ощущается долгим — поставь, например, 0.75.
+        // normalizedTime, при котором не-Roll интеракции (Land, Pick Up)
+        // возвращают управление. 1 = ждать полный клип.
         [Range(0.1f, 1f)]
         public float interactionExitNormalizedTime = 1f;
 
-        // Длительность блендинга (CrossFade) между анимациями-интеракциями,
-        // включая шаги комбо. Меньше — резче/отзывчивее, больше — мягче.
+        // CrossFade между интеракциями, включая шаги комбо.
         [Range(0.05f, 0.5f)]
         public float animationBlendTime = 0.2f;
 
-        // Более быстрый CrossFade для перехода в Rec-анимацию при ОБРЫВЕ комбо
-        // (см. ComboWindowClosed) — обрыв должен ощущаться мгновенно.
+        // Быстрый CrossFade при обрыве комбо — обрыв должен ощущаться мгновенно.
         [Range(0.02f, 0.3f)]
         public float comboBreakBlendTime = 0.05f;
 
         [Header("Movement Blend")]
-        // true (NieR-feel): в blend tree идут СЫРЫЕ значения ввода — на стике
-        // скорость анимации плавно растёт с наклоном, без "ступенек".
-        // false: лестница туториала (0 / ±0.5 / ±1) — souls-снэппинг.
-        // Для клавиатуры разницы нет (WASD и так даёт 0/±1). Blend tree
-        // менять не нужно: пороги -1/-0.5/0/0.5/1 интерполируются и так.
+        // true (NieR-feel): сырые значения ввода — на стике скорость анимации
+        // растёт плавно. false: лестница туториала 0 / ±0.5 / ±1.
         [SerializeField] bool useAnalogMovementBlend = true;
 
         public void Initialize()
@@ -60,7 +53,6 @@ namespace SG {
 
             if (useAnalogMovementBlend)
             {
-                // Аналоговый режим: значения как есть (в пределах [-1..1]).
                 v = Mathf.Clamp(verticalMovement, -1f, 1f);
                 h = Mathf.Clamp(horizontalMovement, -1f, 1f);
             }
@@ -110,7 +102,7 @@ namespace SG {
                 v = 2;
                 h = horizontalMovement;
             }
-            
+
             anim.SetFloat(vertical, v, 0.1f, Time.deltaTime);
             anim.SetFloat(horizontal, h, 0.1f, Time.deltaTime);
         }
@@ -122,10 +114,9 @@ namespace SG {
             anim.CrossFade(targetAnim, blendTime >= 0f ? blendTime : animationBlendTime);
         }
 
-        // Вызывается Animation Event'ом (со строковым параметром — именем
-        // Rec-анимации) ближе к концу клипа атаки, ПОСЛЕ EnableCombo(). Если
-        // canDoCombo всё ещё true — игрок не нажал RB в окне комбо, и окно
-        // закрылось само: явно переключаем на Rec с быстрым блендом.
+        // Animation Event (строковый параметр — имя Rec-анимации) ближе к
+        // концу клипа атаки, после EnableCombo. canDoCombo ещё true — окно
+        // закрылось само, явно уходим в Rec с быстрым блендом.
         public void ComboWindowClosed(string recoveryAnim)
         {
             if (anim.GetBool(CanDoComboHash))
@@ -155,13 +146,9 @@ namespace SG {
             anim.SetBool(CanDoComboHash, false);
         }
 
-        // --- I-Frames уклонения -------------------------------------------
-        // Вызываются Animation Event'ами на клипе Rolling (события обязаны
-        // жить на объекте с Animator — поэтому методы здесь, а флаг в
-        // PlayerStats). Ставь EnableInvulnerability в начале клипа (~5-10%),
-        // DisableInvulnerability — ближе к концу (~60-70%): классическое окно
-        // неуязвимости уклонения. Пока события не расставлены — методы просто
-        // не вызываются, ничего не меняется.
+        #region I-Frames (Animation Events на клипе Rolling)
+        // События обязаны жить на объекте с Animator — поэтому методы здесь,
+        // а флаг в PlayerStats. Enable ~5-10% клипа, Disable ~60-70%.
         public void EnableInvulnerability()
         {
             if (playerStats != null)
@@ -173,6 +160,7 @@ namespace SG {
             if (playerStats != null)
                 playerStats.isInvulnerable = false;
         }
+        #endregion
 
         private void OnAnimatorMove()
         {
@@ -188,13 +176,9 @@ namespace SG {
             Rigidbody rb = playerLocomotion.rb;
             rb.linearDamping = 0;
 
-            // Мёртвый персонаж: авто-возврат управления по normalizedTime
-            // ЗАПРЕЩЁН. Без этого клип "Dead" доигрывал до конца, ветка ниже
-            // снимала isInteracting — и трупом можно было бегать до
-            // возрождения (или вечно, если PlayerRespawn не повешен).
-            // Управление вернёт PlayerRespawn через PlayeTargetAnimation
-            // ("Empty", isInteracting: false). Вертикаль оставляем гравитации,
-            // горизонталь глушим — труп не должен скользить.
+            // Мёртвый персонаж: авто-возврат управления запрещён, иначе клип
+            // "Dead" доигрывал бы и трупом можно было бегать. Управление
+            // вернёт PlayerRespawn. Горизонталь глушим — труп не скользит.
             if (playerStats != null && playerStats.isDead)
             {
                 Vector3 deadVelocity = Vector3.zero;
@@ -203,29 +187,23 @@ namespace SG {
                 return;
             }
 
-            // Логика ниже разветвляется по типу интеракции: только Roll
-            // получает ручной разгон/торможение; воздушные состояния
-            // (Jump/Falling) физику не трогают — её ведёт HandleFalling.
             bool isRollingState = stateInfo.IsName("Rolling");
             bool inAir = playerManager.isInAir;
 
-            // Для Roll порог всегда 1 (ждём конец клипа). Для остальных
-            // интеракций — настраиваемый interactionExitNormalizedTime.
+            // Roll всегда ждёт конец клипа; остальные — настраиваемый порог.
             float exitThreshold = isRollingState ? 1f : interactionExitNormalizedTime;
 
-            // В воздухе авто-выход ЗАПРЕЩЁН: зацикленный Falling проходит
-            // normalizedTime >= 1 на каждом витке, и без этой проверки
-            // управление возвращалось бы игроку прямо в полёте. Момент
-            // выхода из воздушных состояний определяет HandleFalling
-            // (Land/Empty при касании земли) — это фаза 3.
+            // В воздухе авто-выход запрещён: зацикленный Falling проходит
+            // normalizedTime >= 1 каждый виток — управление возвращал бы
+            // прямо в полёте. Выход из воздуха решает HandleFalling.
             if (!inAir && stateInfo.normalizedTime >= exitThreshold)
             {
                 rb.linearVelocity = Vector3.zero;
 
                 if (!isRollingState)
                 {
-                    // Land/Pick Up и т.п.: явно возвращаем управление, не
-                    // дожидаясь Animation Event, которого может не быть.
+                    // Явный возврат управления, не дожидаясь Animation Event,
+                    // которого может не быть.
                     anim.applyRootMotion = false;
                     anim.SetBool(IsInteractingHash, false);
                 }
@@ -240,13 +218,12 @@ namespace SG {
 
             if (deltaPosition.sqrMagnitude > 0.0001f)
             {
-                // Реальный root motion есть (например, у атак и старта
-                // прыжка) — используем его для горизонтали.
+                // Реальный root motion (атаки, старт прыжка) ведёт горизонталь.
                 velocity = deltaPosition / delta;
             }
             else if (isRollingState)
             {
-                // Специфичный для Roll разгон/торможение.
+                // Ручной разгон/торможение ролла по фазе клипа.
                 const float rampFraction = 0.15f;
                 float normalizedTime = Mathf.Clamp01(stateInfo.normalizedTime);
                 float speedMultiplier;
@@ -263,20 +240,17 @@ namespace SG {
             }
             else if (inAir)
             {
-                // Воздушное состояние без root motion (Falling-цикл):
-                // скорость целиком ведёт физика/HandleFalling — не мешаем,
+                // Falling-цикл без root motion: скорость ведёт HandleFalling,
                 // иначе горизонтальный импульс прыжка обнулялся бы каждый кадр.
                 velocity = rb.linearVelocity;
             }
             else
             {
-                // Наземная интеракция без root motion — стоим на месте.
                 velocity = Vector3.zero;
             }
 
-            // Ключ к физическому прыжку: в воздухе вертикальную скорость
-            // НИКОГДА не перетираем root motion'ом (у клипов y всё равно
-            // занулён выше) — сохраняем импульс прыжка и ускорение падения.
+            // В воздухе вертикаль никогда не перетираем root motion'ом —
+            // сохраняем импульс прыжка и ускорение падения.
             if (inAir)
             {
                 velocity.y = rb.linearVelocity.y;
