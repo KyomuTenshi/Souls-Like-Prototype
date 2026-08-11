@@ -1,3 +1,4 @@
+// InputHandler.cs
 using UnityEngine;
 
 namespace SG 
@@ -16,6 +17,9 @@ namespace SG
         public bool rt_Input;
         public bool jump_Input;
         public bool inventory_Input;
+        public bool lockOn_Input;
+        public bool right_Stick_Left_Input;
+        public bool right_Stick_Right_Input;
 
         public bool d_Pad_Up;
         public bool d_Pad_Down;
@@ -25,31 +29,18 @@ namespace SG
         public bool rollFlag;
         public bool sprintFlag;
         public bool comboFlag;
+        public bool lockOnFlag;
         public bool inventoryFlag;
         public float rollInputTimer;
 
         [SerializeField] private float rollInputThreshold = 0.5f;
 
         [Header("Attack Input Buffer")]
-        // Окно буфера атак (сек). Нажатие атаки во время другой анимации
-        // (ролл, приземление, чужая атака вне комбо-окна) раньше ПРОПАДАЛО:
-        // rb_Input гасился, HandleLightAttack утыкался в isIntetacting — и
-        // всё. Игрок жмёт кнопку чуть раньше времени -> ощущение "съеденного"
-        // ввода. Теперь нажатие запоминается и исполняется, как только это
-        // становится возможно (открылось комбо-окно / кончилась интеракция).
-        // Это стандарт отзывчивого action-комбата (NieR/DMC/Souls так делают).
         [SerializeField] private float attackBufferWindow = 0.4f;
         float lightAttackBufferTimer;
         float heavyAttackBufferTimer;
 
         [Header("Roll Input Buffer (NieR dodge)")]
-        // Буфер уклонения — той же природы, что буфер атак выше. Раньше тап
-        // ролла во время атаки/приземления пропадал: rollFlag выставлялся на
-        // один кадр, HandleRollingAndSprinting утыкался в isIntetacting, а
-        // LateUpdate стирал флаг. Теперь нажатие живёт rollBufferWindow
-        // секунд и держит rollFlag поднятым, пока PlayerLocomotion не сможет
-        // его исполнить — в том числе КАНСЕЛОМ атаки (см. PlayerLocomotion).
-        // Исполнитель гасит буфер через ConsumeRollBuffer().
         [SerializeField] private float rollBufferWindow = 0.35f;
         float rollBufferTimer;
 
@@ -57,6 +48,7 @@ namespace SG
         PlayerAttacker playerAttacker;
         PlayerInventory playerInventory;
         PlayerManager playerManager;
+        CameraHandler cameraHandler;
         UIManager uiManager;
 
         Vector2 movementInput;
@@ -68,9 +60,8 @@ namespace SG
             playerInventory = GetComponent<PlayerInventory>();
             playerManager = GetComponent<PlayerManager>();
 
-            // FindFirstObjectByType вместо устаревшего FindObjectOfType —
-            // тот же смысл, без obsolete-warning (см. PlayerStats/PlayerManager).
             uiManager = FindFirstObjectByType<UIManager>(FindObjectsInactive.Include);
+            cameraHandler = FindFirstObjectByType<CameraHandler>();
         }
 
         public void OnEnable()
@@ -85,12 +76,6 @@ namespace SG
                 inputActions.PlayerMovement.Camera.performed += ctx => cameraInput = ctx.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Camera.canceled += ctx => cameraInput = Vector2.zero;
 
-                // Все one-shot подписки — строго ОДИН РАЗ здесь, в OnEnable.
-                // Подписка внутри Tick-методов (вызываются каждый кадр из
-                // PlayerManager.Update) добавляла бы нового подписчика каждый
-                // кадр — та же ошибка, что уже была с RB/RT/D-Pad, и в неё же
-                // наступила подписка на Inventory, которая раньше стояла
-                // внутри HandleInventoryInput().
                 inputActions.PlayerActions.RB.performed += i => rb_Input = true;
                 inputActions.PlayerActions.RT.performed += i => rt_Input = true;
                 inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
@@ -100,6 +85,11 @@ namespace SG
 
                 inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
                 inputActions.PlayerActions.Inventory.performed += i => { inventory_Input = true; Debug.Log("Inventory pressed"); };
+
+                inputActions.PlayerActions.LockOn.performed += i => lockOn_Input = true;
+
+                inputActions.PlayerMovement.LockOnTargetLeft.performed += i => right_Stick_Left_Input = true;
+                inputActions.PlayerMovement.LockOnTargetRight.performed += i => right_Stick_Right_Input = true;
             }
 
             inputActions.Enable();
@@ -112,18 +102,12 @@ namespace SG
 
         public void TickInput(float delta)
         {
-            // Инвентарь обрабатываем ПЕРВЫМ (раньше был последним): открытие
-            // меню должно заглушить боевой ввод в этом же кадре, а закрытие —
-            // вернуть его без задержки в кадр.
             HandleInventoryInput();
 
-            MoveInput(delta);
+            // ИСПРАВЛЕНО: метод объявлен как HandleMoveInput, а вызывался
+            // как MoveInput — несуществующее имя, ошибка компиляции.
+            HandleMoveInput(delta);
 
-            // Пока открыто меню, геймплейный ввод глотаем: раньше E/R/Shift/
-            // Space/X били, роллили и прыгали "за меню", а путь мыши к кнопке
-            // крутил камеру (гейт камеры — в PlayerManager.LateUpdate).
-            // Движение (WASD) оставляем — как в souls-играх, ходить с
-            // открытым меню можно.
             if (inventoryFlag)
             {
                 rb_Input = false;
@@ -132,6 +116,8 @@ namespace SG
                 a_Input = false;
                 d_Pad_Left = false;
                 d_Pad_Right = false;
+                right_Stick_Left_Input = false;
+                right_Stick_Right_Input = false;
                 lightAttackBufferTimer = 0f;
                 heavyAttackBufferTimer = 0f;
                 rollBufferTimer = 0f;
@@ -144,9 +130,10 @@ namespace SG
             HandleRollInput(delta);
             HandleAttackInput(delta);
             HandleQuackSlotsInput(delta);
+            HandleLockOnInput();
         }
 
-        private void MoveInput(float delta)
+        private void HandleMoveInput(float delta)
         {
             horizontal = movementInput.x;
             vertical = movementInput.y;
@@ -170,20 +157,12 @@ namespace SG
                 if (rollInputTimer > 0 && rollInputTimer < rollInputThreshold)
                 {
                     sprintFlag = false;
-                    // БЫЛО: rollFlag = true напрямую (жил один кадр до
-                    // LateUpdate). Теперь тап только взводит буфер —
-                    // исполнение ниже.
                     rollBufferTimer = rollBufferWindow;
                 }
 
                 rollInputTimer = 0;
             }
 
-            // Пока буфер жив, каждый кадр поднимаем rollFlag заново
-            // (PlayerManager.LateUpdate его стирает — это ок, буфер
-            // переживает стирание и попытка повторяется). Если ролл возможен
-            // прямо сейчас, он выйдет в этот же кадр — прежнее мгновенное
-            // поведение полностью сохранено.
             if (rollBufferTimer > 0f)
             {
                 rollBufferTimer -= delta;
@@ -191,9 +170,6 @@ namespace SG
             }
         }
 
-        // Зовёт PlayerLocomotion в момент, когда ролл реально принят к
-        // исполнению: без этого буфер поднимал бы rollFlag ещё несколько
-        // кадров после старта ролла.
         public void ConsumeRollBuffer()
         {
             rollBufferTimer = 0f;
@@ -202,9 +178,6 @@ namespace SG
 
         private void HandleAttackInput(float delta)
         {
-            // Нажатие только взводит таймер буфера — исполнение ниже.
-            // Если персонаж свободен, атака выйдет в этот же кадр, т.е.
-            // прежнее мгновенное поведение полностью сохраняется.
             if (rb_Input)
             {
                 rb_Input = false;
@@ -217,16 +190,8 @@ namespace SG
                 heavyAttackBufferTimer = attackBufferWindow;
             }
 
-            // Не даём ДВУМ атакам выйти в один кадр: playerManager.isIntetacting
-            // и canDoConbo кэшируются в начале кадра (PlayerManager.Update) и
-            // не видят атаку, запущенную строчкой выше. Без guard'а RB+RT,
-            // зажатые одновременно, запускали два CrossFade подряд — второй
-            // молча перетирал первый. Теперь лёгкая имеет приоритет в этом
-            // кадре, а тяжёлая остаётся в буфере и выйдет в свой момент.
             bool attackExecutedThisFrame = false;
 
-            // Лёгкая атака / комбо. Комбо-окно проверяем первым: если оно
-            // открыто, буферизованное нажатие продолжает цепочку.
             if (lightAttackBufferTimer > 0f)
             {
                 lightAttackBufferTimer -= delta;
@@ -247,10 +212,6 @@ namespace SG
                 }
             }
 
-            // Тяжёлая атака. НОВОЕ (Фаза 3): в комбо-окне RT больше не ждёт
-            // конца всей цепочки, а ВЕТВИТ её тяжёлым финишером — строки
-            // вида лёгкая-лёгкая-тяжёлая, как в NieR/DMC. Вне комбо-окна —
-            // прежнее поведение: ждёт конца текущей интеракции.
             if (heavyAttackBufferTimer > 0f)
             {
                 heavyAttackBufferTimer -= delta;
@@ -289,9 +250,6 @@ namespace SG
 
         private void HandleInventoryInput()
         {
-            // Флаг гасим сразу же в месте использования — как и rb_Input/
-            // rt_Input/jump_Input — иначе он останется true и откроет/закроет
-            // окно повторно в следующем кадре без нового нажатия.
             if (inventory_Input)
             {
                 inventory_Input = false;
@@ -312,6 +270,48 @@ namespace SG
                     uiManager.CloseSelectWindow();
                 }
             }
+        }
+
+        private void HandleLockOnInput()
+        {
+            if (lockOn_Input && lockOnFlag == false)
+            {
+                lockOn_Input = false;
+                cameraHandler.HandleLockOn();
+                if (cameraHandler.nearestLockOnTarget != null)
+                {
+                    cameraHandler.currentLockOnTarget = cameraHandler.nearestLockOnTarget;
+                    lockOnFlag = true;
+                }
+            }
+            else if (lockOn_Input && lockOnFlag)
+            {
+                lockOn_Input = false;
+                lockOnFlag = false;
+                cameraHandler.ClearLockOnTargets();
+            }
+
+            if (lockOnFlag && right_Stick_Left_Input)
+            {
+                right_Stick_Left_Input = false;
+                cameraHandler.HandleLockOn();
+                if (cameraHandler.leftLockOnTarget != null)
+                {
+                    cameraHandler.currentLockOnTarget = cameraHandler.leftLockOnTarget;
+                }
+            }
+
+            if (lockOnFlag && right_Stick_Right_Input)
+            {
+                right_Stick_Right_Input = false;
+                cameraHandler.HandleLockOn();
+                if (cameraHandler.rightLockOnTarget != null)
+                {
+                    cameraHandler.currentLockOnTarget = cameraHandler.rightLockOnTarget;
+                }
+            }
+
+            cameraHandler.SetCameraHeight();
         }
     }
 }

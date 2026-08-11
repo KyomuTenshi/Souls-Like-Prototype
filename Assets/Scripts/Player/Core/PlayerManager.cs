@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 namespace SG {
-    public class PlayerManager : MonoBehaviour
+    public class PlayerManager : CharacterManager
     {
         InputHandler inputHandler;
         Animator anim;
