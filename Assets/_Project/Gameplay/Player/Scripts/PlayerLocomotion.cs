@@ -21,8 +21,14 @@ namespace SG {
         [SerializeField]
         float rotationSpeed = 10;
 
+        [Header("Roll (используется, если у анимации нет root motion)")]
+        [SerializeField]
+        float rollSpeed = 6f;      // скорость смещения во время ролла
+        public bool useManualRollMovement = true; // должен быть public/виден из AnimatorHandler.OnAnimatorMove
+
         Vector3 normalVector;
         Vector3 targetPosition;
+        Vector3 rollDirection; // направление, зафиксированное в момент старта ролла
 
         void Start()
         {
@@ -33,11 +39,8 @@ namespace SG {
             myTransform = transform;
             animatorHandler.Initialize();
 
-            // Задаём вектор нормали, чтобы ProjectOnPlane не давал NaN
             normalVector = Vector3.up;
-            
-            // Включаем возможность вращения по умолчанию
-            animatorHandler.canRotate = true; 
+            animatorHandler.canRotate = true;
         }
 
         public void Update()
@@ -45,29 +48,8 @@ namespace SG {
             float delta = Time.deltaTime;
 
             inputHandler.TickInput(delta);
-
-            moveDirection = cameraObject.forward * inputHandler.vertical;
-            moveDirection += cameraObject.right * inputHandler.horizontal;
-            
-            // Исключаем влияние наклона камеры на направление движения
-            moveDirection.y = 0; 
-            moveDirection.Normalize();
-
-            float speed = movementSpeed;
-            moveDirection *= speed;
-
-            Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
-            
-            // Примечание: В Unity 6 используется `linearVelocity`. 
-            // Если у тебя более старая версия Unity (например 2022.3), заمني на `rigidbody.velocity`.
-            rigidbody.linearVelocity = projectedVelocity; 
-
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0);
-
-            if (animatorHandler.canRotate)
-            {
-                HandleRotation(delta);
-            }
+            HandleMovement(delta);
+            HandleRollingAndSprinting(delta);
         }
 
         #region Movement
@@ -92,6 +74,64 @@ namespace SG {
             myTransform.rotation = targetRotation;
         }
 
+        public void HandleMovement(float delta)
+        {
+            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0);
+
+            if (animatorHandler.anim.GetBool("isInteracting"))
+                return;
+
+            moveDirection = cameraObject.forward * inputHandler.vertical;
+            moveDirection += cameraObject.right * inputHandler.horizontal;
+
+            moveDirection.y = 0;
+            moveDirection.Normalize();
+
+            float speed = movementSpeed;
+            moveDirection *= speed;
+
+            Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
+            rigidbody.linearVelocity = projectedVelocity;
+
+            if (animatorHandler.canRotate)
+            {
+                HandleRotation(delta);
+            }
+        }
+
+        public void HandleRollingAndSprinting(float delta)
+        {
+            if (animatorHandler.anim.GetBool("isInteracting"))
+            {
+                if (useManualRollMovement && rollDirection != Vector3.zero)
+                {
+                    rigidbody.linearVelocity = rollDirection * rollSpeed;
+                }
+                return;
+            }
+
+            if (inputHandler.rollFlag)
+            {
+                moveDirection = cameraObject.forward * inputHandler.vertical;
+                moveDirection += cameraObject.right * inputHandler.horizontal;
+                moveDirection.y = 0;
+
+                if (inputHandler.moveAmount > 0)
+                {
+                    moveDirection.Normalize();
+                    rollDirection = moveDirection; // фиксируем направление на весь ролл
+
+                    animatorHandler.PlayTargetAnimation("Rolling", true);
+                    Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
+                    myTransform.rotation = rollRotation;
+                }
+                else
+                {
+                    rollDirection = myTransform.forward * -1; // Backstep — назад
+                    animatorHandler.PlayTargetAnimation("Backstep", true);
+                }
+            }
+        }
         #endregion
     }
 }
