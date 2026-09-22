@@ -22,7 +22,7 @@
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -86,8 +86,19 @@
                     "id": "2d6de1ff-ccbe-4c9c-b4f6-37e3a6d94a20",
                     "path": "<Mouse>/delta",
                     "interactions": "",
-                    "processors": "",
+                    "processors": "ScaleVector2(x=0.02,y=0.02)",
                     "groups": ";PC",
+                    "action": "Camera",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "9b880394-69c1-4275-98df-f04b8354d081",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "ScaleVector2",
+                    "groups": "",
                     "action": "Camera",
                     "isComposite": false,
                     "isPartOfComposite": false
