@@ -19,16 +19,52 @@ namespace SG {
         [SerializeField]
         float movementSpeed = 5;
         [SerializeField]
+        float sprintSpeed = 7;
+        [SerializeField]
         float rotationSpeed = 10;
 
-        [Header("Roll (используется, если у анимации нет root motion)")]
-        [SerializeField]
-        float rollSpeed = 6f;      // скорость смещения во время ролла
-        public bool useManualRollMovement = true; // должен быть public/виден из AnimatorHandler.OnAnimatorMove
+        public bool isSprinting;
 
         Vector3 normalVector;
         Vector3 targetPosition;
-        Vector3 rollDirection; // направление, зафиксированное в момент старта ролла
+
+        #region Action Settings
+        // Параметры действий вынесены в Inspector: дистанция и длительность задаются явно
+        // и не зависят от длины анимационных клипов и переходов в Animator.
+        [Header("Manual Movement")]
+        [Tooltip("Вкл — ролл, бэкстеп и торможение двигаются по параметрам ниже. Выкл — root motion анимаций.")]
+        public bool useManualRollMovement = true;
+
+        [Header("Roll")]
+        [Tooltip("Дистанция ролла, м")]
+        [SerializeField]
+        float rollDistance = 4f;
+        [Tooltip("Длительность перемещения, с")]
+        [SerializeField]
+        float rollDuration = 0.6f;
+
+        [Header("Backstep")]
+        [Tooltip("Дистанция бэкстепа, м")]
+        [SerializeField]
+        float backstepDistance = 1.5f;
+        [Tooltip("Длительность перемещения, с")]
+        [SerializeField]
+        float backstepDuration = 0.35f;
+
+        [Header("Sprint Stop")]
+        [Tooltip("Тормозной путь, м")]
+        [SerializeField]
+        float sprintStopDistance = 2f;
+        [Tooltip("Время торможения до полной остановки, с")]
+        [SerializeField]
+        float sprintStopDuration = 0.6f;
+        [Tooltip("Минимальная длительность спринта для анимации торможения, с")]
+        [SerializeField]
+        float minSprintTimeForStop = 0.3f;
+        [Tooltip("Допустимый интервал между отпусканием спринта и отпусканием движения, с")]
+        [SerializeField]
+        float sprintReleaseGrace = 0.25f;
+        #endregion
 
         void Start()
         {
@@ -47,6 +83,8 @@ namespace SG {
         {
             float delta = Time.deltaTime;
 
+            // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
+            isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;
             inputHandler.TickInput(delta);
             HandleMovement(delta);
             HandleRollingAndSprinting(delta);
@@ -76,9 +114,14 @@ namespace SG {
 
         public void HandleMovement(float delta)
         {
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0);
+            // Вызов перенесён выше ранних return, чтобы параметры Animator обновлялись и во время действий.
+            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, isSprinting);
 
+            // Во время действия скорость и поворот задаёт само действие, а не ввод игрока.
             if (animatorHandler.anim.GetBool("isInteracting"))
+                return;
+
+            if (inputHandler.rollFlag)
                 return;
 
             moveDirection = cameraObject.forward * inputHandler.vertical;
@@ -88,10 +131,20 @@ namespace SG {
             moveDirection.Normalize();
 
             float speed = movementSpeed;
-            moveDirection *= speed;
+
+            if (inputHandler.sprintFlag)
+            {
+                speed = sprintSpeed;
+                isSprinting = true;
+                moveDirection *= speed;
+            }
+            else
+            {
+                moveDirection *= speed;
+            }
 
             Vector3 projectedVelocity = Vector3.ProjectOnPlane(moveDirection, normalVector);
-            rigidbody.linearVelocity = projectedVelocity;
+            rigidbody.linearVelocity = projectedVelocity; // Unity 6: Rigidbody.velocity переименован в linearVelocity.
 
             if (animatorHandler.canRotate)
             {
@@ -101,14 +154,11 @@ namespace SG {
 
         public void HandleRollingAndSprinting(float delta)
         {
+            // Перемещение во время активного действия; вызывается до проверки isInteracting.
+            HandleManualActionMovement(delta);
+
             if (animatorHandler.anim.GetBool("isInteracting"))
-            {
-                if (useManualRollMovement && rollDirection != Vector3.zero)
-                {
-                    rigidbody.linearVelocity = rollDirection * rollSpeed;
-                }
                 return;
-            }
 
             if (inputHandler.rollFlag)
             {
@@ -118,18 +168,127 @@ namespace SG {
 
                 if (inputHandler.moveAmount > 0)
                 {
-                    moveDirection.Normalize();
-                    rollDirection = moveDirection; // фиксируем направление на весь ролл
-
                     animatorHandler.PlayTargetAnimation("Rolling", true);
                     Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
                     myTransform.rotation = rollRotation;
+                    StartManualActionMovement(moveDirection, rollDistance, rollDuration, false);
                 }
                 else
                 {
-                    rollDirection = myTransform.forward * -1; // Backstep — назад
                     animatorHandler.PlayTargetAnimation("Backstep", true);
+                    StartManualActionMovement(-myTransform.forward, backstepDistance, backstepDuration, false);
                 }
+            }
+
+            // Анимация торможения после спринта — расширение сверх туториала.
+            HandleSprintStop(delta);
+        }
+        #endregion
+
+        #region Manual Action Movement
+        // Ручное перемещение для ролла, бэкстепа и торможения вместо root motion.
+        // Скорость вычисляется из заданной дистанции и длительности, поэтому
+        // пройденный путь не зависит от длины клипа и настроек переходов Animator.
+
+        [HideInInspector]
+        public bool isDoingManualAction; // Используется в AnimatorHandler.OnAnimatorMove для отключения root motion.
+
+        Vector3 actionDirection;
+        float actionStartSpeed;
+        float actionDuration;
+        float actionTimer;
+        bool actionSlowsDown;
+
+        private void StartManualActionMovement(Vector3 direction, float distance, float duration, bool slowDown)
+        {
+            isDoingManualAction = useManualRollMovement;
+
+            if (!isDoingManualAction)
+                return;
+
+            direction.y = 0;
+            actionDirection = direction.normalized;
+            actionDuration = Mathf.Max(duration, 0.01f);
+            actionTimer = 0;
+            actionSlowsDown = slowDown;
+
+            // Равномерное движение: v = d / t. Линейное торможение до нуля: v0 = 2d / t.
+            actionStartSpeed = slowDown ? 2f * distance / actionDuration : distance / actionDuration;
+
+            rigidbody.linearVelocity = actionDirection * actionStartSpeed;
+        }
+
+        private void HandleManualActionMovement(float delta)
+        {
+            if (!animatorHandler.anim.GetBool("isInteracting"))
+            {
+                isDoingManualAction = false;
+                return;
+            }
+
+            if (!isDoingManualAction)
+                return;
+
+            actionTimer += delta;
+
+            // Дистанция пройдена: персонаж стоит на месте до завершения анимации.
+            if (actionTimer >= actionDuration)
+            {
+                rigidbody.linearVelocity = Vector3.zero;
+                return;
+            }
+
+            float speed = actionStartSpeed;
+
+            if (actionSlowsDown)
+                speed *= 1f - actionTimer / actionDuration;
+
+            rigidbody.linearVelocity = actionDirection * speed;
+        }
+        #endregion
+
+        #region Sprint Stop
+        // Проигрывает Sprint_Exit, если игрок резко остановился после достаточно долгого спринта.
+
+        float sprintTime;
+        float timeSinceSprint;
+        bool wasMoving;
+
+        private void HandleSprintStop(float delta)
+        {
+            if (inputHandler.rollFlag)
+            {
+                sprintTime = 0;
+                return;
+            }
+
+            bool moving = inputHandler.moveAmount > 0;
+            bool sprinting = inputHandler.b_input && moving;
+
+            if (sprinting)
+            {
+                sprintTime += delta;
+                timeSinceSprint = 0;
+            }
+            else
+            {
+                timeSinceSprint += delta;
+            }
+
+            bool justStopped = wasMoving && !moving;
+            wasMoving = moving;
+
+            if (justStopped && timeSinceSprint <= sprintReleaseGrace && sprintTime >= minSprintTimeForStop)
+            {
+                sprintTime = 0;
+                animatorHandler.PlayTargetAnimation("Sprint_Exit", true);
+                StartManualActionMovement(myTransform.forward, sprintStopDistance, sprintStopDuration, true);
+                return;
+            }
+
+            if (timeSinceSprint > sprintReleaseGrace)
+            {
+                sprintTime = 0;
             }
         }
         #endregion
