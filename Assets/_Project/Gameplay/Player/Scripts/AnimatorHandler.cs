@@ -104,6 +104,9 @@ namespace SG {
             if (playerManager.isInteracting == false)
                 return;
 
+            if (playerManager.isInAir)
+                return;
+
             // Root motion отключается только на время ручного действия (ролл, бэкстеп, торможение).
             // Остальные анимации с isInteracting двигаются через root motion, как в туториале.
             if (playerLocomotion.isDoingManualAction)
