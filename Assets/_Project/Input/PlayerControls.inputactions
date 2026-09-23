@@ -86,7 +86,7 @@
                     "id": "2d6de1ff-ccbe-4c9c-b4f6-37e3a6d94a20",
                     "path": "<Mouse>/delta",
                     "interactions": "",
-                    "processors": "ScaleVector2(x=0.02,y=0.02)",
+                    "processors": "ScaleVector2",
                     "groups": ";PC",
                     "action": "Camera",
                     "isComposite": false,

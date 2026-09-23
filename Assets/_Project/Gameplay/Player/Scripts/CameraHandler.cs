@@ -13,9 +13,15 @@ namespace SG {
 
         public static CameraHandler singleton;
 
-        public float lookSpeed = 0.1f;
-        public float followSpeed = 0.1f;
-        public float pivotSpeed = 0.03f;
+        // Чувствительность задаётся в градусах на единицу смещения мыши.
+        // В туториале ввод делился на delta (0.02 в FixedUpdate), поэтому значения здесь в 50 раз больше.
+        public float lookSpeed = 5f;
+        public float pivotSpeed = 1.5f;
+
+        // В туториале было followSpeed со временем сглаживания delta / followSpeed (больше — быстрее).
+        // Поле переименовано, чтобы старое значение из инспектора не переносилось с обратным смыслом.
+        [Tooltip("Время сглаживания следования за персонажем, с. Меньше — камера отстаёт меньше. 0 — без задержки.")]
+        public float followSmoothTime = 0.05f;
 
         private float targetPosition;
         private float defaultPosition;
@@ -38,16 +44,17 @@ namespace SG {
 
         public void FollowTarget(float delta)
         {
-            Vector3 targetPosition = Vector3.SmoothDamp(myTransform.position, targetTransform.position, ref cameraFollowVelocity, delta / followSpeed);
+            Vector3 targetPosition = Vector3.SmoothDamp(myTransform.position, targetTransform.position, ref cameraFollowVelocity, followSmoothTime);
             myTransform.position = targetPosition;
 
-            HandleCameraCollisions(delta);  
+            HandleCameraCollisions(delta);
         }
 
         public void HandleCameraRotation(float delta, float mouseXInput, float mouseYInput)
         {
-            lookAngle += (mouseXInput * lookSpeed) / delta;
-            pivotAngle -= (mouseYInput * pivotSpeed) / delta;
+            // Дельта мыши — это уже смещение за кадр, поэтому на delta не делится (в туториале делилось).
+            lookAngle += mouseXInput * lookSpeed;
+            pivotAngle -= mouseYInput * pivotSpeed;
             pivotAngle = Mathf.Clamp(pivotAngle, minimumPivot, maximumPivot);
 
             Vector3 rotation = Vector3.zero;
@@ -82,8 +89,6 @@ namespace SG {
 
             cameraTransformPosition.z = Mathf.Lerp(cameraTransform.localPosition.z, targetPosition, delta / 0.2f);
             cameraTransform.localPosition = cameraTransformPosition;
-
         }
-
     }
 }
