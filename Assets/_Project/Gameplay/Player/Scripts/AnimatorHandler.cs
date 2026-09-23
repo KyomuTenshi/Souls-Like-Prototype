@@ -19,7 +19,7 @@ namespace SG {
             horizontal = Animator.StringToHash("Horizontal");
         }
 
-        public void UpdateAnimatorValues(float verticalMovement, float horizontalMovement)
+        public void UpdateAnimatorValues(float verticalMovement, float horizontalMovement, bool isSprinting)
         {
             #region Vertical
             float v = 0;
@@ -71,6 +71,12 @@ namespace SG {
             }
             #endregion
 
+            if (isSprinting)
+            {
+                v = 2;
+                h = horizontalMovement;
+            }
+
             anim.SetFloat(vertical, v, 0.1f, Time.deltaTime);
             anim.SetFloat(horizontal, h, 0.1f, Time.deltaTime);
         }
@@ -96,15 +102,17 @@ namespace SG {
             if (inputHandler.isInteracting == false)
                 return;
 
-            if (playerLocomotion.useManualRollMovement)
+            // Root motion отключается только на время ручного действия (ролл, бэкстеп, торможение).
+            // Остальные анимации с isInteracting двигаются через root motion, как в туториале.
+            if (playerLocomotion.isDoingManualAction)
                 return;
 
             float delta = Time.deltaTime;
-            playerLocomotion.rigidbody.linearDamping = 0;
+            playerLocomotion.rigidbody.linearDamping = 0; // Unity 6: Rigidbody.drag переименован в linearDamping.
             Vector3 deltaPosition = anim.deltaPosition;
             deltaPosition.y = 0;
             Vector3 velocity = deltaPosition / delta;
-            playerLocomotion.rigidbody.linearVelocity = velocity;
+            playerLocomotion.rigidbody.linearVelocity = velocity; // Unity 6: Rigidbody.velocity переименован в linearVelocity.
         }
     }
 }
