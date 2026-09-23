@@ -15,35 +15,19 @@ namespace SG {
         public bool rollFlag;
         public bool sprintFlag;
         public float rollInputTimer;
-        public bool isInteracting;
 
         [Header("Roll")]
         [Tooltip("Максимальная длительность нажатия, при которой выполняется перекат, с. Если кнопка удерживается дольше, выполняется спринт.")]
         public float rollTapTime = 0.25f;
 
+        [Header("Camera")]
+        [Tooltip("Скорость камеры со стика геймпада. Стик выдаёт не смещение за кадр, а отклонение, поэтому умножается на время.")]
+        public float gamepadCameraSpeed = 150f;
+
         PlayerControls inputActions;
-        CameraHandler cameraHandler;
 
         Vector2 movementInput;
         Vector2 cameraInput;
-
-        private void Awake()
-        {
-            cameraHandler = CameraHandler.singleton;
-        }
-
-        // Камера обновляется в LateUpdate (в туториале — FixedUpdate), после перемещения персонажа,
-        // чтобы исключить дрожание изображения.
-        private void LateUpdate()
-        {
-            float delta = Time.deltaTime;
-
-            if (cameraHandler != null)
-            {
-                cameraHandler.FollowTarget(delta);
-                cameraHandler.HandleCameraRotation(delta, mouseX, mouseY);
-            }
-        }
 
         public void OnEnable()
         {
@@ -52,12 +36,12 @@ namespace SG {
                 inputActions = new PlayerControls();
 
                 // Подписки на canceled сбрасывают ввод при отпускании: performed с нулевым значением не приходит,
-                // и без сброса персонаж и камера продолжали бы движение.
+                // и без сброса персонаж продолжал бы движение.
                 inputActions.PlayerMovement.Movement.performed += i => movementInput = i.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Movement.canceled += i => movementInput = Vector2.zero;
 
-                inputActions.PlayerMovement.Camera.performed += i => cameraInput = i.ReadValue<Vector2>();
-                inputActions.PlayerMovement.Camera.canceled += i => cameraInput = Vector2.zero;
+                // Камера читается напрямую в MoveInput (в туториале — через performed):
+                // колбэк сохранял только последнее событие мыши за кадр.
             }
 
             inputActions.Enable();
@@ -79,6 +63,15 @@ namespace SG {
             horizontal = movementInput.x;
             vertical = movementInput.y;
             moveAmount = Mathf.Clamp01(Mathf.Abs(horizontal) + Mathf.Abs(vertical));
+
+            InputAction cameraAction = inputActions.PlayerMovement.Camera;
+            cameraInput = cameraAction.ReadValue<Vector2>();
+
+            if (cameraAction.activeControl != null && cameraAction.activeControl.device is Gamepad)
+            {
+                cameraInput *= gamepadCameraSpeed * delta;
+            }
+
             mouseX = cameraInput.x;
             mouseY = cameraInput.y;
         }
