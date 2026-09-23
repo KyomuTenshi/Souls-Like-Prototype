@@ -12,6 +12,8 @@ namespace SG {
 
         [Header("Player Flags")]
         public bool isSprinting;
+        public bool isInAir;
+        public bool isGrounded;
 
         void Start()
         {
@@ -33,6 +35,7 @@ namespace SG {
             inputHandler.TickInput(delta);
             playerLocomotion.HandleMovement(delta);
             playerLocomotion.HandleRollingAndSprinting(delta);
+            playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
         }
 
         // Камера обновляется в LateUpdate (в туториале — FixedUpdate): каждый кадр и после перемещения персонажа.
@@ -51,6 +54,11 @@ namespace SG {
             inputHandler.sprintFlag = false;
             // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
             isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;
+
+            if (isInAir)
+            {
+                playerLocomotion.inAirTimer = playerLocomotion.inAirTimer + Time.deltaTime;
+            }
         }
     }
 }
