@@ -15,6 +15,10 @@ namespace SG {
         public bool isInAir;
         public bool isGrounded;
 
+        public void Awake()
+        {
+            cameraHandler = FindObjectOfType<CameraHandler>();
+        }
         void Start()
         {
             // Синглтон берётся в Start: в Awake CameraHandler мог ещё не инициализироваться.
