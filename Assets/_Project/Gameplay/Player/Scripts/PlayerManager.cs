@@ -52,8 +52,8 @@ namespace SG {
 
             inputHandler.rollFlag = false;
             inputHandler.sprintFlag = false;
-            // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
-            isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;
+            inputHandler.rb_Input = false;
+            inputHandler.rt_Input = false;
 
             if (isInAir)
             {
