@@ -3,6 +3,7 @@ using UnityEngine;
 namespace SG {
     public class PlayerLocomotion : MonoBehaviour
     {
+        PlayerManager playerManager;
         Transform cameraObject;
         InputHandler inputHandler;
         Vector3 moveDirection;
@@ -22,8 +23,6 @@ namespace SG {
         float sprintSpeed = 7;
         [SerializeField]
         float rotationSpeed = 10;
-
-        public bool isSprinting;
 
         Vector3 normalVector;
         Vector3 targetPosition;
@@ -68,6 +67,7 @@ namespace SG {
 
         void Start()
         {
+            playerManager = GetComponent<PlayerManager>();
             rigidbody = GetComponent<Rigidbody>();
             inputHandler = GetComponent<InputHandler>();
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
@@ -77,17 +77,6 @@ namespace SG {
 
             normalVector = Vector3.up;
             animatorHandler.canRotate = true;
-        }
-
-        public void Update()
-        {
-            float delta = Time.deltaTime;
-
-            // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
-            isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;
-            inputHandler.TickInput(delta);
-            HandleMovement(delta);
-            HandleRollingAndSprinting(delta);
         }
 
         #region Movement
@@ -115,7 +104,7 @@ namespace SG {
         public void HandleMovement(float delta)
         {
             // Вызов перенесён выше ранних return, чтобы параметры Animator обновлялись и во время действий.
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, isSprinting);
+            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, playerManager.isSprinting);
 
             // Во время действия скорость и поворот задаёт само действие, а не ввод игрока.
             if (animatorHandler.anim.GetBool("isInteracting"))
@@ -135,7 +124,7 @@ namespace SG {
             if (inputHandler.sprintFlag)
             {
                 speed = sprintSpeed;
-                isSprinting = true;
+                playerManager.isSprinting = true;
                 moveDirection *= speed;
             }
             else

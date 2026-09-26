@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 9161360969176049167}
   - component: {fileID: 5199175657607408160}
   - component: {fileID: 3947176769772537106}
+  - component: {fileID: 2052665767613328562}
   m_Layer: 8
   m_Name: Player
   m_TagString: Untagged
@@ -103,6 +104,12 @@ MonoBehaviour:
   moveAmount: 0
   mouseX: 0
   mouseY: 0
+  b_input: 0
+  rollFlag: 0
+  sprintFlag: 0
+  rollInputTimer: 0
+  rollTapTime: 0.25
+  gamepadCameraSpeed: 150
 --- !u!114 &3947176769772537106
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,8 +126,33 @@ MonoBehaviour:
   animatorHandler: {fileID: 0}
   rigidbody: {fileID: 0}
   normalCamera: {fileID: 0}
-  movementSpeed: 5
-  rotationSpeed: 10
+  movementSpeed: 4.8
+  sprintSpeed: 7.3
+  rotationSpeed: 13
+  useManualRollMovement: 1
+  rollDistance: 3.4
+  rollDuration: 0.48
+  backstepDistance: 1.4
+  backstepDuration: 0.4
+  sprintStopDistance: 1
+  sprintStopDuration: 0.3
+  minSprintTimeForStop: 0.22
+  sprintReleaseGrace: 0.15
+  isDoingManualAction: 0
+--- !u!114 &2052665767613328562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 111042335174884863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b187232ea9f724fcfa8f74e2bca49501, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerManager
+  isInteracting: 0
+  isSprinting: 0
 --- !u!1001 &3291969900370192783
 PrefabInstance:
   m_ObjectHideFlags: 0
