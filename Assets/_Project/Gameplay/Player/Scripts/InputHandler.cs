@@ -13,7 +13,13 @@ namespace SG {
         public bool b_input;
 
         public bool rollFlag;
+        public bool sprintFlag;
+        public float rollInputTimer;
         public bool isInteracting;
+
+        [Header("Roll")]
+        [Tooltip("Максимальная длительность нажатия, при которой выполняется перекат, с. Если кнопка удерживается дольше, выполняется спринт.")]
+        public float rollTapTime = 0.25f;
 
         PlayerControls inputActions;
         CameraHandler cameraHandler;
@@ -26,6 +32,8 @@ namespace SG {
             cameraHandler = CameraHandler.singleton;
         }
 
+        // Камера обновляется в LateUpdate (в туториале — FixedUpdate), после перемещения персонажа,
+        // чтобы исключить дрожание изображения.
         private void LateUpdate()
         {
             float delta = Time.deltaTime;
@@ -43,12 +51,11 @@ namespace SG {
             {
                 inputActions = new PlayerControls();
 
-                // Считываем значение при нажатии/удержании
+                // Подписки на canceled сбрасывают ввод при отпускании: performed с нулевым значением не приходит,
+                // и без сброса персонаж и камера продолжали бы движение.
                 inputActions.PlayerMovement.Movement.performed += i => movementInput = i.ReadValue<Vector2>();
-                // Сбрасываем значение при отпускании клавиши
                 inputActions.PlayerMovement.Movement.canceled += i => movementInput = Vector2.zero;
 
-                // То же самое для камеры
                 inputActions.PlayerMovement.Camera.performed += i => cameraInput = i.ReadValue<Vector2>();
                 inputActions.PlayerMovement.Camera.canceled += i => cameraInput = Vector2.zero;
             }
@@ -78,11 +85,25 @@ namespace SG {
 
         private void HandleRollInput(float delta)
         {
-            b_input = inputActions.PlayerActions.Roll.WasPressedThisFrame();
+            // В актуальной версии Input System фаза Button-действия сразу переходит в Performed,
+            // поэтому проверка phase == Started из туториала ненадёжна. IsPressed() возвращает true,
+            // пока кнопка удерживается.
+            b_input = inputActions.PlayerActions.Roll.IsPressed();
 
             if (b_input)
             {
-                rollFlag = true;
+                rollInputTimer += delta;
+                sprintFlag = true;
+            }
+            else
+            {
+                if (rollInputTimer > 0 && rollInputTimer < rollTapTime)
+                {
+                    sprintFlag = false;
+                    rollFlag = true;
+                }
+
+                rollInputTimer = 0;
             }
         }
     }
