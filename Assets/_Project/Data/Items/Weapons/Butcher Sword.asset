@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8bbabfa9943f14788b6a6da2436b402a, type: 3}
-  m_Name: Sword
+  m_Name: Butcher Sword
   m_EditorClassIdentifier: Assembly-CSharp::SG.WeaponItem
   itemIcon: {fileID: 0}
-  itemName: Sword
-  weaponPrefab: {fileID: 393497259327669567, guid: e0b22c2adf22544818fd2a05bfe96cb6, type: 3}
+  itemName: Butcher Sword
+  weaponPrefab: {fileID: 393497259327669567, guid: 0a566bf19a9e24512925e7f63ee856b9, type: 3}
   isUnarmed: 0
   rigth_hand_idle: Right_Arm_Idle_01
   left_hand_idle: Left_Arm_Idle_01

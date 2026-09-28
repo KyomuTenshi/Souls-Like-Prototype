@@ -224,12 +224,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 118166385}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 5, y: 1, z: 0}
   m_LocalScale: {x: 10, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 821727382}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &326547709
 GameObject:
@@ -716,7 +716,11 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 939491357}
+  - {fileID: 1432992306}
+  - {fileID: 118166389}
+  - {fileID: 1857672799}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
@@ -873,12 +877,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 939491353}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 3, z: -5}
   m_LocalScale: {x: 10, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 821727382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1399724944 stripped
 GameObject:
@@ -1026,12 +1030,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1432992302}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 5}
   m_LocalScale: {x: 10, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 821727382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1434266985
 GameObject:
@@ -1462,12 +1466,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1857672795}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
   m_LocalPosition: {x: -5, y: 1, z: 0}
   m_LocalScale: {x: 10, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 821727382}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &2064929154
 GameObject:
@@ -1584,7 +1588,35 @@ PrefabInstance:
     - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
       propertyPath: leftWeapon
       value: 
+      objectReference: {fileID: 11400000, guid: a0de87778d68f49eeaebf2c7c1ea87a1, type: 2}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: unarmedWeapon
+      value: 
+      objectReference: {fileID: 11400000, guid: a0de87778d68f49eeaebf2c7c1ea87a1, type: 2}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: weaponsInLeftHandSlots.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: weaponsInRightHandSlots.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: 'weaponsInLeftHandSlots.Array.data[0]'
+      value: 
       objectReference: {fileID: 11400000, guid: 237451c6b74dd42dd94c0350b235e532, type: 2}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: 'weaponsInLeftHandSlots.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 7b2ee42a218814722b4b49119dbebe73, type: 2}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: 'weaponsInRightHandSlots.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 237451c6b74dd42dd94c0350b235e532, type: 2}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: 'weaponsInRightHandSlots.Array.data[1]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 7b2ee42a218814722b4b49119dbebe73, type: 2}
     - target: {fileID: 1804488165765462799, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
       propertyPath: healthBar
       value: 
@@ -1702,10 +1734,6 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 821727382}
-  - {fileID: 939491357}
-  - {fileID: 1432992306}
-  - {fileID: 118166389}
-  - {fileID: 1857672799}
   - {fileID: 4132466724759732230}
   - {fileID: 6115948436683415742}
   - {fileID: 2064929158}
