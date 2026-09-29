@@ -122,13 +122,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bec220561a2744ff1aa93b765ef73829, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerLocomotion
+  moveDirection: {x: 0, y: 0, z: 0}
   myTransform: {fileID: 0}
   animatorHandler: {fileID: 0}
   rigidbody: {fileID: 0}
   normalCamera: {fileID: 0}
+  groundDetectionRayStartPoint: 0.5
+  minimumDistanceNeededToBeginFall: 1
+  groundDirectionRayDistance: 0.2
+  inAirTimer: 0
   movementSpeed: 4.8
   sprintSpeed: 7.3
   rotationSpeed: 13
+  fallingSpeed: 2
   useManualRollMovement: 1
   rollDistance: 3.4
   rollDuration: 0.48
@@ -153,6 +159,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerManager
   isInteracting: 0
   isSprinting: 0
+  isInAir: 0
+  isGrounded: 0
 --- !u!1001 &3291969900370192783
 PrefabInstance:
   m_ObjectHideFlags: 0
