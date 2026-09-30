@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bbabfa9943f14788b6a6da2436b402a, type: 3}
   m_Name: Sword
   m_EditorClassIdentifier: Assembly-CSharp::SG.WeaponItem
-  itemIcon: {fileID: 0}
+  itemIcon: {fileID: 21300000, guid: 29afd5d7b530b424b8688109524bea04, type: 3}
   itemName: Sword
   weaponPrefab: {fileID: 393497259327669567, guid: e0b22c2adf22544818fd2a05bfe96cb6, type: 3}
   isUnarmed: 0
