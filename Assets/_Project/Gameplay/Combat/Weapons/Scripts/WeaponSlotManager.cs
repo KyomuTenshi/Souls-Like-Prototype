@@ -65,7 +65,7 @@ namespace SG {
                 #region Handle Right Weapon Idle Animations
                 if (weaponItem != null)
                 {
-                    animator.CrossFade(weaponItem.rigth_hand_idle, 0.2f);
+                    animator.CrossFade(weaponItem.right_hand_idle, 0.2f);
                 }
                 else
                 {
@@ -76,7 +76,7 @@ namespace SG {
         }
 
         #region Handle Weapon's Damage Collider
-        
+
         private void LoadLeftWeaponDamageCollider()
         {
             leftHandDamageCollider = leftHandSlot.currentWeaponModel.GetComponentInChildren<DamageCollider>();
@@ -109,7 +109,7 @@ namespace SG {
 
         #endregion
 
-        #region Handle Weapon's Stamina Drainge
+        #region Handle Weapon's Stamina Drain
         public void DrainStaminaLightAttack()
         {
             playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.lightAttackMultiplier));

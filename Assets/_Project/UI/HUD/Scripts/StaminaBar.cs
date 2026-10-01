@@ -10,6 +10,7 @@ namespace SG {
         {
             slider = GetComponent<Slider>();
         }
+
         public void SetMaxStamina(int maxStamina)
         {
             slider.maxValue = maxStamina;

@@ -258,7 +258,7 @@ namespace SG {
                         animatorHandler.PlayTargetAnimation("Land", true);
                         inAirTimer = 0;
                     }
-                    else 
+                    else
                     {
                         animatorHandler.PlayTargetAnimation("Empty", false);
                         inAirTimer = 0;
@@ -283,7 +283,13 @@ namespace SG {
 
                     Vector3 vel = rigidbody.linearVelocity;
                     vel.Normalize();
-                    rigidbody.linearVelocity = vel * (movementSpeed / 2);
+                    vel *= movementSpeed / 2;
+
+                    // После прыжка игрок уже летит вниз быстрее movementSpeed / 2 — скорость падения
+                    // не урезается, иначе он зависал в воздухе, опустившись ниже точки прыжка.
+                    vel.y = Mathf.Min(vel.y, rigidbody.linearVelocity.y);
+
+                    rigidbody.linearVelocity = vel;
                     playerManager.isInAir = true;
                 }
             }
@@ -326,6 +332,12 @@ namespace SG {
                     Quaternion jumpRotation = Quaternion.LookRotation(moveDirection);
                     myTransform.rotation = jumpRotation;
                     StartManualActionMovement(moveDirection, jumpDistance, jumpDuration, false, jumpHeight);
+                }
+                else
+                {
+                    // Прыжок на месте — расширение сверх туториала: та же парабола, но без смещения вперёд.
+                    animatorHandler.PlayTargetAnimation("Jump", true);
+                    StartManualActionMovement(myTransform.forward, 0, jumpDuration, false, jumpHeight);
                 }
             }
         }
