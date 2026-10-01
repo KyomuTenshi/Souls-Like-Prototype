@@ -45,19 +45,25 @@ namespace SG {
             return maxStamina;
         }
 
+        // Мёртвый персонаж урон не получает: иначе Damage_01 прерывал анимацию смерти.
         public void TakeDamage(int damage)
         {
+            if (currentHealth <= 0)
+                return;
+
             currentHealth = currentHealth - damage;
-
-            healthBar.SetCurrentHealth(currentHealth);
-
-            animatorHandler.PlayTargetAnimation("Damage_01", true);
 
             if (currentHealth <= 0)
             {
                 currentHealth = 0;
                 animatorHandler.PlayTargetAnimation("Death_02", true);
             }
+            else
+            {
+                animatorHandler.PlayTargetAnimation("Damage_01", true);
+            }
+
+            healthBar.SetCurrentHealth(currentHealth);
         }
 
         public void TakeStaminaDamage(int damage)

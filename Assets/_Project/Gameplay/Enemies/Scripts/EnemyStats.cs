@@ -26,16 +26,22 @@ namespace SG {
             return maxHealth;
         }
 
+        // Мёртвый враг урон не получает: иначе Damage_01 прерывал анимацию смерти.
         public void TakeDamage(int damage)
         {
-            currentHealth = currentHealth - damage;
+            if (currentHealth <= 0)
+                return;
 
-            animator.Play("Damage_01");
+            currentHealth = currentHealth - damage;
 
             if (currentHealth <= 0)
             {
                 currentHealth = 0;
                 animator.Play("Death_02");
+            }
+            else
+            {
+                animator.Play("Damage_01");
             }
         }
     }
