@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -69,6 +68,7 @@ namespace SG {
                 inputActions.PlayerActions.RB.performed += i => rb_Input = true;
                 inputActions.PlayerActions.RT.performed += i => rt_Input = true;
                 inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
+                inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
                 inputActions.PlayerQuickSlots.DPadRight.performed += i => d_Pad_Right = true;
                 inputActions.PlayerQuickSlots.DPadLeft.performed += i => d_Pad_Left = true;
             }
@@ -87,7 +87,6 @@ namespace SG {
             HandleRollInput(delta);
             HandleAttackInput(delta);
             HandleQuickSlotsInput();
-            HandleJumpInput();
         }
 
         private void MoveInput(float delta)
@@ -146,13 +145,13 @@ namespace SG {
                 {
                     if (playerManager.isInteracting)
                         return;
-                    
+
                     if (playerManager.canDoCombo)
                         return;
                     playerAttacker.HandleLightAttack(playerInventory.rightWeapon);
                 }
             }
-            
+
             if (rt_Input)
             {
                 if (playerManager.canDoCombo)
@@ -175,24 +174,14 @@ namespace SG {
 
         private void HandleQuickSlotsInput()
         {
-            if(d_Pad_Right)
+            if (d_Pad_Right)
             {
-                playerInventory.ChangeRightWEapon();
+                playerInventory.ChangeRightWeapon();
             }
             else if (d_Pad_Left)
             {
-                playerInventory.ChangeLeftWEapon();
+                playerInventory.ChangeLeftWeapon();
             }
-        }
-
-        private void HandleInteractingButtonInput()
-        {
-            inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
-        }
-
-        private void HandleJumpInput()
-        {
-            inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
         }
     }
 }

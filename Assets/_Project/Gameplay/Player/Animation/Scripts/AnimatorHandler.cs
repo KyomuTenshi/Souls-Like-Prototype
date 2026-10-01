@@ -89,6 +89,7 @@ namespace SG {
             anim.SetBool("isInteracting", isInteracting);
             anim.CrossFade(targetAnim, 0.2f);
         }
+
         public void CanRotate()
         {
             canRotate = true;
@@ -108,6 +109,7 @@ namespace SG {
         {
             anim.SetBool("canDoCombo", false);
         }
+
         private void OnAnimatorMove()
         {
             if (playerManager.isInteracting == false)

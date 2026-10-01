@@ -16,7 +16,7 @@ MonoBehaviour:
   itemName: Butcher Sword
   weaponPrefab: {fileID: 393497259327669567, guid: e0b22c2adf22544818fd2a05bfe96cb6, type: 3}
   isUnarmed: 0
-  rigth_hand_idle: Right_Arm_Idle_01
+  right_hand_idle: Right_Arm_Idle_01
   left_hand_idle: Left_Arm_Idle_01
   OH_Light_Attack_1: OH_Light_Attack_1
   OH_Heavy_Attack_1: OH_Heavy_Attack_1
@@ -26,6 +26,6 @@ MonoBehaviour:
   OH_Heavy_Attack_3: OH_Heavy_Attack_3
   OH_Light_Attack_4: OH_Light_Attack_4
   OH_Heavy_Attack_4: OH_Heavy_Attack_4
-  baseStamina: 20
-  lightAttackMultiplier: 2
-  heavyAttackMultiplier: 4
+  baseStamina: 10
+  lightAttackMultiplier: 1.5
+  heavyAttackMultiplier: 3

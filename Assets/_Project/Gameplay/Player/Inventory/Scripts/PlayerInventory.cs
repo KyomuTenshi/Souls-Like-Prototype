@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -32,7 +31,7 @@ namespace SG {
             leftWeapon = unarmedWeapon;
         }
 
-        public void ChangeRightWEapon()
+        public void ChangeRightWeapon()
         {
             currentRightWeaponIndex = currentRightWeaponIndex + 1;
 
@@ -55,7 +54,7 @@ namespace SG {
                 currentRightWeaponIndex = currentRightWeaponIndex + 1;
             }
 
-            if (currentRightWeaponIndex > weaponsInRightHandSlots.Length -1)
+            if (currentRightWeaponIndex > weaponsInRightHandSlots.Length - 1)
             {
                 currentRightWeaponIndex = -1;
                 rightWeapon = unarmedWeapon;
@@ -63,7 +62,7 @@ namespace SG {
             }
         }
 
-        public void ChangeLeftWEapon()
+        public void ChangeLeftWeapon()
         {
             currentLeftWeaponIndex = currentLeftWeaponIndex + 1;
 
@@ -86,7 +85,7 @@ namespace SG {
                 currentLeftWeaponIndex = currentLeftWeaponIndex + 1;
             }
 
-            if (currentLeftWeaponIndex > weaponsInLeftHandSlots.Length -1)
+            if (currentLeftWeaponIndex > weaponsInLeftHandSlots.Length - 1)
             {
                 currentLeftWeaponIndex = -1;
                 leftWeapon = unarmedWeapon;

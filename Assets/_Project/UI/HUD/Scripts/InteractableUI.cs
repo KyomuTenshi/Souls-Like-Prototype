@@ -1,11 +1,13 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace SG {
     public class InteractableUI : MonoBehaviour
     {
-        public TMP_Text interavtableText;
+        [FormerlySerializedAs("interavtableText")]
+        public TMP_Text interactableText;
         public TMP_Text itemText;
         public RawImage itemImage;
     }

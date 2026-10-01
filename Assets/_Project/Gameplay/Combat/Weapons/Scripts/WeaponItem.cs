@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SG {
     [CreateAssetMenu(fileName = "New Weapon", menuName = "Items/Weapon")]
@@ -8,9 +9,10 @@ namespace SG {
         public bool isUnarmed;
 
         [Header("Idle Animations")]
-        public string rigth_hand_idle;
+        [FormerlySerializedAs("rigth_hand_idle")]
+        public string right_hand_idle;
         public string left_hand_idle;
-        
+
         [Header("Attack Animations")]
         public string OH_Light_Attack_1;
         public string OH_Heavy_Attack_1;

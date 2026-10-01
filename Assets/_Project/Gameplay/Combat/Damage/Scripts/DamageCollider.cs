@@ -27,7 +27,7 @@ namespace SG {
 
         private void OnTriggerEnter(Collider collision)
         {
-            if (collision.tag == "Hittable")
+            if (collision.CompareTag("Hittable"))
             {
                 PlayerStats playerStats = collision.GetComponent<PlayerStats>();
 
@@ -37,7 +37,7 @@ namespace SG {
                 }
             }
 
-            if (collision.tag == "Enemy")
+            if (collision.CompareTag("Enemy"))
             {
                 EnemyStats enemyStats = collision.GetComponent<EnemyStats>();
 
