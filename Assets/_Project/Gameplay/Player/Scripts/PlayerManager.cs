@@ -8,6 +8,10 @@ namespace SG {
         CameraHandler cameraHandler;
         PlayerLocomotion playerLocomotion;
 
+        InteractableUI interactableUI;
+        public GameObject interactableUIGameObject;
+        public GameObject itemInteractableGameObject;
+
         public bool isInteracting;
 
         [Header("Player Flags")]
@@ -35,6 +39,7 @@ namespace SG {
             inputHandler = GetComponent<InputHandler>();
             anim = GetComponentInChildren<Animator>();
             playerLocomotion = GetComponent<PlayerLocomotion>();
+            interactableUI = FindFirstObjectByType<InteractableUI>();
         }
 
         void Update()
@@ -99,8 +104,8 @@ namespace SG {
                 if (interactableObject != null)
                 {
                     string interactableText = interactableObject.interactbleText;
-                    //SET THE UI TEXT TO THE INTERACTABLE OBJECT'S TEXT
-                    //SET THE TEXT POP UP TO TRUE
+                    interactableUI.interavtableText.text = interactableText;
+                    interactableUIGameObject.SetActive(true);
 
                     if (inputHandler.a_Input && !isInteracting)
                     {
@@ -109,6 +114,16 @@ namespace SG {
 
                     return;
                 }
+            }
+
+            if (interactableUIGameObject != null)
+            {
+                interactableUIGameObject.SetActive(false);
+            }
+
+            if (itemInteractableGameObject != null && inputHandler.a_Input)
+            {
+                itemInteractableGameObject.SetActive(false);
             }
         }
 
