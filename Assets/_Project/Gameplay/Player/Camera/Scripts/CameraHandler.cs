@@ -8,7 +8,7 @@ namespace SG {
         public Transform cameraPivotTransform;
         private Transform myTransform;
         private Vector3 cameraTransformPosition;
-        private LayerMask ignoreLayers;
+        public LayerMask ignoreLayers;
         private Vector3 cameraFollowVelocity = Vector3.zero;
 
         public static CameraHandler singleton;
@@ -40,7 +40,11 @@ namespace SG {
             myTransform = transform;
             defaultPosition = cameraTransform.localPosition.z;
             ignoreLayers = ~(1 << 8 | 1 << 9 | 1 << 10);
-            targetTransform = FindObjectOfType<PlayerManager>().transform;
+            PlayerManager playerManager = FindFirstObjectByType<PlayerManager>();
+            if (playerManager != null)
+            {
+                targetTransform = playerManager.transform;
+            }
         }
 
         public void FollowTarget(float delta)
@@ -77,7 +81,8 @@ namespace SG {
             Vector3 direction = cameraTransform.position - cameraPivotTransform.position;
             direction.Normalize();
 
-            if (Physics.SphereCast(cameraPivotTransform.position, cameraSphereRadius, direction, out hit, Mathf.Abs(targetPosition), ignoreLayers))
+            // Триггеры игнорируются, иначе камера прижималась к персонажу у триггер-зон (огонь, предметы).
+            if (Physics.SphereCast(cameraPivotTransform.position, cameraSphereRadius, direction, out hit, Mathf.Abs(targetPosition), ignoreLayers, QueryTriggerInteraction.Ignore))
             {
                 float distance = Vector3.Distance(cameraPivotTransform.position, hit.point);
                 targetPosition = -(distance - cameraCollisionOffset);

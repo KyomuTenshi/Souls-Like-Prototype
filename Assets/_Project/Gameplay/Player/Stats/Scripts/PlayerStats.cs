@@ -17,8 +17,8 @@ namespace SG {
 
         private void Awake()
         {
-            healthBar = FindObjectOfType<HealthBar>();
-            staminaBar = FindObjectOfType<StaminaBar>();
+            healthBar = FindFirstObjectByType<HealthBar>();
+            staminaBar = FindFirstObjectByType<StaminaBar>();
             animatorHandler = GetComponentInChildren<AnimatorHandler>();
         }
 

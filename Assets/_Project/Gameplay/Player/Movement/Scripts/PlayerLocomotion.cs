@@ -207,7 +207,9 @@ namespace SG {
             Vector3 origin = myTransform.position;
             origin.y += groundDetectionRayStartPoint;
 
-            if (Physics.Raycast(origin, myTransform.forward, out hit, 0.4f))
+            // Триггеры игнорируются явно: в проекте включено Queries Hit Triggers, и без этого
+            // игрок вставал на триггер-зоны (огонь, предметы) как на землю.
+            if (Physics.Raycast(origin, myTransform.forward, out hit, 0.4f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
             {
                 moveDirection = Vector3.zero;
             }
@@ -225,7 +227,7 @@ namespace SG {
             targetPosition = myTransform.position;
 
             Debug.DrawRay(origin, -Vector3.up * minimumDistanceNeededToBeginFall, Color.red, 0.1f, false);
-            if (Physics.Raycast(origin, -Vector3.up, out hit, minimumDistanceNeededToBeginFall, ignoreForGroundCheck))
+            if (Physics.Raycast(origin, -Vector3.up, out hit, minimumDistanceNeededToBeginFall, ignoreForGroundCheck, QueryTriggerInteraction.Ignore))
             {
                 normalVector = hit.normal;
                 Vector3 tp = hit.point;
