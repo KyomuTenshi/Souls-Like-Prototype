@@ -12,6 +12,7 @@ namespace SG {
         public float mouseY;
 
         public bool b_input;
+        public bool a_Input;
         public bool rb_Input;
         public bool rt_Input;
         public bool d_Pad_Up;
@@ -60,6 +61,14 @@ namespace SG {
 
                 // Камера читается напрямую в MoveInput (в туториале — через performed):
                 // колбэк сохранял только последнее событие мыши за кадр.
+
+                // Подписки делаются один раз здесь (в туториале — в Handle*Input каждый кадр):
+                // каждый += добавлял ещё один обработчик, и их число росло с каждым кадром.
+                inputActions.PlayerActions.RB.performed += i => rb_Input = true;
+                inputActions.PlayerActions.RT.performed += i => rt_Input = true;
+                inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
+                inputActions.PlayerQuickSlots.DPadRight.performed += i => d_Pad_Right = true;
+                inputActions.PlayerQuickSlots.DPadLeft.performed += i => d_Pad_Left = true;
             }
 
             inputActions.Enable();
@@ -122,9 +131,6 @@ namespace SG {
 
         private void HandleAttackInput(float delta)
         {
-            inputActions.PlayerActions.RB.performed += i => rb_Input = true;
-            inputActions.PlayerActions.RT.performed += i => rt_Input = true;
-
             if (rb_Input)
             {
                 if (playerManager.canDoCombo)
@@ -166,9 +172,6 @@ namespace SG {
 
         private void HandleQuickSlotsInput()
         {
-            inputActions.PlayerQuickSlots.DPadRight.performed += inputActions => d_Pad_Right = true;
-            inputActions.PlayerQuickSlots.DPadLeft.performed += inputActions => d_Pad_Left = true;
-
             if(d_Pad_Right)
             {
                 playerInventory.ChangeRightWEapon();

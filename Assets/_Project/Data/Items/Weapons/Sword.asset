@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SG.WeaponItem
   itemIcon: {fileID: 21300000, guid: 29afd5d7b530b424b8688109524bea04, type: 3}
   itemName: Sword
-  weaponPrefab: {fileID: 393497259327669567, guid: e0b22c2adf22544818fd2a05bfe96cb6, type: 3}
+  weaponPrefab: {fileID: 393497259327669567, guid: 0a566bf19a9e24512925e7f63ee856b9, type: 3}
   isUnarmed: 0
   rigth_hand_idle: Right_Arm_Idle_01
   left_hand_idle: Left_Arm_Idle_01
