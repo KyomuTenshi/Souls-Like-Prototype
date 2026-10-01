@@ -48,6 +48,7 @@ namespace SG {
 
             isInteracting = anim.GetBool("isInteracting");
             canDoCombo = anim.GetBool("canDoCombo");
+            anim.SetBool("isInAir", isInAir);
 
             // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
             isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;
@@ -55,6 +56,7 @@ namespace SG {
             playerLocomotion.HandleMovement(delta);
             playerLocomotion.HandleRollingAndSprinting(delta);
             playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
+            playerLocomotion.HandleJumping();
 
             CheckForInteractableObject();
         }
@@ -80,6 +82,7 @@ namespace SG {
             inputHandler.d_Pad_Left = false;
             inputHandler.d_Pad_Right = false;
             inputHandler.a_Input = false;
+            inputHandler.jump_Input = false;
 
             if (isInAir)
             {

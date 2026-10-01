@@ -62,6 +62,17 @@ namespace SG {
         [SerializeField]
         float backstepDuration = 0.35f;
 
+        [Header("Jump")]
+        [Tooltip("Дистанция прыжка вперёд, м")]
+        [SerializeField]
+        float jumpDistance = 3f;
+        [Tooltip("Высота прыжка, м")]
+        [SerializeField]
+        float jumpHeight = 1f;
+        [Tooltip("Длительность прыжка, с. Не должна быть больше длины анимации Jump, иначе прыжок оборвётся при выходе в Empty.")]
+        [SerializeField]
+        float jumpDuration = 0.7f;
+
         [Header("Sprint Stop")]
         [Tooltip("Тормозной путь, м")]
         [SerializeField]
@@ -202,6 +213,10 @@ namespace SG {
 
         public void HandleFalling(float delta, Vector3 moveDirection)
         {
+            // Во время прыжка высоту задаёт ручное движение; проверка земли возобновляется после приземления.
+            if (isJumping)
+                return;
+
             playerManager.isGrounded = false;
             RaycastHit hit;
             Vector3 origin = myTransform.position;
@@ -294,10 +309,30 @@ namespace SG {
                 }
             }
         }
+
+        public void HandleJumping()
+        {
+            if (playerManager.isInteracting)
+                return;
+
+            if (inputHandler.jump_Input)
+            {
+                if (inputHandler.moveAmount > 0)
+                {
+                    moveDirection = cameraObject.forward * inputHandler.vertical;
+                    moveDirection += cameraObject.right * inputHandler.horizontal;
+                    animatorHandler.PlayTargetAnimation("Jump", true);
+                    moveDirection.y = 0;
+                    Quaternion jumpRotation = Quaternion.LookRotation(moveDirection);
+                    myTransform.rotation = jumpRotation;
+                    StartManualActionMovement(moveDirection, jumpDistance, jumpDuration, false, jumpHeight);
+                }
+            }
+        }
         #endregion
 
         #region Manual Action Movement
-        // Ручное перемещение для ролла, бэкстепа и торможения вместо root motion.
+        // Ручное перемещение для ролла, бэкстепа, торможения и прыжка вместо root motion.
         // Скорость вычисляется из заданной дистанции и длительности, поэтому
         // пройденный путь не зависит от длины клипа и настроек переходов Animator.
 
@@ -309,8 +344,15 @@ namespace SG {
         float actionDuration;
         float actionTimer;
         bool actionSlowsDown;
+        float actionHeight;
 
-        private void StartManualActionMovement(Vector3 direction, float distance, float duration, bool slowDown)
+        // Прыжок идёт, пока ручное действие с высотой не завершилось.
+        public bool isJumping
+        {
+            get { return isDoingManualAction && actionHeight > 0 && actionTimer < actionDuration; }
+        }
+
+        private void StartManualActionMovement(Vector3 direction, float distance, float duration, bool slowDown, float height = 0f)
         {
             isDoingManualAction = useManualRollMovement;
 
@@ -322,11 +364,12 @@ namespace SG {
             actionDuration = Mathf.Max(duration, 0.01f);
             actionTimer = 0;
             actionSlowsDown = slowDown;
+            actionHeight = height;
 
             // Равномерное движение: v = d / t. Линейное торможение до нуля: v0 = 2d / t.
             actionStartSpeed = slowDown ? 2f * distance / actionDuration : distance / actionDuration;
 
-            rigidbody.linearVelocity = actionDirection * actionStartSpeed;
+            rigidbody.linearVelocity = actionDirection * actionStartSpeed + Vector3.up * GetActionVerticalSpeed();
         }
 
         private void HandleManualActionMovement(float delta)
@@ -343,9 +386,10 @@ namespace SG {
             actionTimer += delta;
 
             // Дистанция пройдена: персонаж стоит на месте до завершения анимации.
+            // После прыжка вертикальная скорость сохраняется, чтобы игрок мог упасть, если под ним нет земли.
             if (actionTimer >= actionDuration)
             {
-                rigidbody.linearVelocity = Vector3.zero;
+                rigidbody.linearVelocity = actionHeight > 0 ? Vector3.up * rigidbody.linearVelocity.y : Vector3.zero;
                 return;
             }
 
@@ -354,7 +398,17 @@ namespace SG {
             if (actionSlowsDown)
                 speed *= 1f - actionTimer / actionDuration;
 
-            rigidbody.linearVelocity = actionDirection * speed;
+            rigidbody.linearVelocity = actionDirection * speed + Vector3.up * GetActionVerticalSpeed();
+        }
+
+        // Вертикальная скорость по параболе высотой actionHeight: v = 4h / T * (1 - 2t / T).
+        // Для ролла, бэкстепа и торможения высота 0, поэтому они остаются на земле.
+        private float GetActionVerticalSpeed()
+        {
+            if (actionHeight <= 0)
+                return 0;
+
+            return 4f * actionHeight / actionDuration * (1f - 2f * actionTimer / actionDuration);
         }
         #endregion
 
