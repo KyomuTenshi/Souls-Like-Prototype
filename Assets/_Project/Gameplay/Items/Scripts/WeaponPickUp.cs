@@ -1,4 +1,6 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SG {
     public class WeaponPickUp : Interactable
@@ -25,6 +27,9 @@ namespace SG {
             playerLocomotion.rigidbody.linearVelocity = Vector3.zero;
             animatorHandler.PlayTargetAnimation("Pick Up Item", true);
             playerInventory.weaponInventory.Add(weapon);
+            playerManager.itemInteractableGameObject.GetComponentInChildren<TMP_Text>(true).text = weapon.itemName;
+            playerManager.itemInteractableGameObject.GetComponentInChildren<RawImage>(true).texture = weapon.itemIcon.texture;
+            playerManager.itemInteractableGameObject.SetActive(true);
             Destroy(gameObject);
         }
     }
