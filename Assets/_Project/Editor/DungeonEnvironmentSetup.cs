@@ -7,7 +7,7 @@ namespace SG {
     // часть сделана на built-in Standard, а текстуры импортируются в 8K.
     public static class DungeonEnvironmentSetup
     {
-        const string FolderPath = "Assets/Dungeon_Environment";
+        const string FolderPath = "Assets/_ThirdParty/Dungeon_Environment";
         const int MaxTextureSize = 2048;
         const float DefaultSmoothness = 0.25f;
 

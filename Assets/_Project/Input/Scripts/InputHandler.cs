@@ -15,6 +15,7 @@ namespace SG {
         public bool rb_Input;
         public bool rt_Input;
         public bool jump_Input;
+        public bool inventory_Input;
 
         public bool d_Pad_Up;
         public bool d_Pad_Down;
@@ -24,6 +25,7 @@ namespace SG {
         public bool rollFlag;
         public bool sprintFlag;
         public bool comboFlag;
+        public bool inventoryFlag;
         public float rollInputTimer;
 
         [Header("Roll")]
@@ -38,6 +40,7 @@ namespace SG {
         PlayerAttacker playerAttacker;
         PlayerInventory playerInventory;
         PlayerManager playerManager;
+        UIManager uiManager;
 
         Vector2 movementInput;
         Vector2 cameraInput;
@@ -47,6 +50,9 @@ namespace SG {
             playerAttacker = GetComponent<PlayerAttacker>();
             playerInventory = GetComponent<PlayerInventory>();
             playerManager = GetComponent<PlayerManager>();
+
+            // UIManager висит не на игроке, а на объекте UI (Canvas), поэтому GetComponent вернул бы null.
+            uiManager = FindFirstObjectByType<UIManager>();
         }
 
         public void OnEnable()
@@ -69,6 +75,7 @@ namespace SG {
                 inputActions.PlayerActions.RT.performed += i => rt_Input = true;
                 inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
                 inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
+                inputActions.PlayerActions.Inventory.performed += i => inventory_Input = true;
                 inputActions.PlayerQuickSlots.DPadRight.performed += i => d_Pad_Right = true;
                 inputActions.PlayerQuickSlots.DPadLeft.performed += i => d_Pad_Left = true;
             }
@@ -87,6 +94,7 @@ namespace SG {
             HandleRollInput(delta);
             HandleAttackInput(delta);
             HandleQuickSlotsInput();
+            HandleInventoryInput();
         }
 
         private void MoveInput(float delta)
@@ -181,6 +189,25 @@ namespace SG {
             else if (d_Pad_Left)
             {
                 playerInventory.ChangeLeftWeapon();
+            }
+        }
+
+        private void HandleInventoryInput()
+        {
+            // Подписка на Inventory вынесена в OnEnable, чтобы обработчики не копились каждый кадр.
+            // Сброс inventory_Input выполняется в PlayerManager.LateUpdate.
+            if (inventory_Input)
+            {
+                inventoryFlag = !inventoryFlag;
+
+                if (inventoryFlag)
+                {
+                    uiManager.OpenSelectWindow();
+                }
+                else
+                {
+                    uiManager.CloseSelectWindow();
+                }
             }
         }
     }
