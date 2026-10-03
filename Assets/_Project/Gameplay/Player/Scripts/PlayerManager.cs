@@ -14,6 +14,7 @@ namespace SG {
         public bool isSprinting;
         public bool isInAir;
         public bool isGrounded;
+        public bool canDoCombo;
 
         public void Awake()
         {
@@ -33,6 +34,7 @@ namespace SG {
             float delta = Time.deltaTime;
 
             isInteracting = anim.GetBool("isInteracting");
+            canDoCombo = anim.GetBool("canDoCombo");
 
             // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
             isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;

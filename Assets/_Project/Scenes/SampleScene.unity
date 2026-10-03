@@ -1581,6 +1581,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 1144553158289213037, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: leftWeapon
+      value: 
+      objectReference: {fileID: 11400000, guid: 237451c6b74dd42dd94c0350b235e532, type: 2}
     - target: {fileID: 1804488165765462799, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
       propertyPath: healthBar
       value: 
