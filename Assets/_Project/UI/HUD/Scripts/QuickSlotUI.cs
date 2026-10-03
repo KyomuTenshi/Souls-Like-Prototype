@@ -11,7 +11,7 @@ namespace SG {
         {
             if (isLeft == false)
             {
-                if (weapon.itemIcon != null)
+                if (weapon != null && weapon.itemIcon != null)
                 {
                     rightWeaponIcon.sprite = weapon.itemIcon;
                     rightWeaponIcon.enabled = true;
@@ -24,7 +24,7 @@ namespace SG {
             }
             else
             {
-                if (weapon.itemIcon != null)
+                if (weapon != null && weapon.itemIcon != null)
                 {
                     leftWeaponIcon.sprite = weapon.itemIcon;
                     leftWeaponIcon.enabled = true;
