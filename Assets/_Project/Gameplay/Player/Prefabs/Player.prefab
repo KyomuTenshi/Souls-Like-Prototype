@@ -112,6 +112,7 @@ MonoBehaviour:
   rt_Input: 0
   rollFlag: 0
   sprintFlag: 0
+  comboFlag: 0
   rollInputTimer: 0
   rollTapTime: 0.25
   gamepadCameraSpeed: 150
@@ -166,6 +167,7 @@ MonoBehaviour:
   isSprinting: 0
   isInAir: 0
   isGrounded: 0
+  canDoCombo: 0
 --- !u!114 &1144553158289213037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,6 +194,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c130f3c0e56482089812e823cca9e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.PlayerAttacker
+  lastAttack: 
 --- !u!114 &1804488165765462799
 MonoBehaviour:
   m_ObjectHideFlags: 0
