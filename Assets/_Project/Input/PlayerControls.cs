@@ -129,7 +129,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/w"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -140,7 +140,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/s"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -151,7 +151,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -162,7 +162,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""Movement"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -173,7 +173,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Mouse>/delta"",
                     ""interactions"": """",
                     ""processors"": ""ScaleVector2"",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""Camera"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -230,7 +230,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/leftShift"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""Roll"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -241,7 +241,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/e"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""RB"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
@@ -252,8 +252,140 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/r"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": "";PC"",
+                    ""groups"": ""Mouse&Keyboard"",
                     ""action"": ""RT"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Player Quick Slots"",
+            ""id"": ""7686141e-586c-4c9e-a138-9942383faed9"",
+            ""actions"": [
+                {
+                    ""name"": ""D-Pad Up"",
+                    ""type"": ""Button"",
+                    ""id"": ""43b0ebc1-5e81-4ee0-ae2f-42b1275d46cb"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""D-Pad Down"",
+                    ""type"": ""Button"",
+                    ""id"": ""44874e02-3b2c-4ae1-831a-4d9db91a468b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""D-Pad Left"",
+                    ""type"": ""Button"",
+                    ""id"": ""490bb31b-6f1f-4118-a4ca-2cf3e4d644e0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""D-Pad Right"",
+                    ""type"": ""Button"",
+                    ""id"": ""d22a7eef-8199-42a9-b573-00e31d54aada"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""6305b201-14c4-4df5-ba0b-37af9ac591f4"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Mouse&Keyboard"",
+                    ""action"": ""D-Pad Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0b9afeb3-836a-443e-a80f-46541c485220"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Controller"",
+                    ""action"": ""D-Pad Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4a33ba48-5cca-40b2-a946-7497e80a6549"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Mouse&Keyboard"",
+                    ""action"": ""D-Pad Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1c097efe-dad3-46c9-8186-7c37421fa507"",
+                    ""path"": ""<Gamepad>/dpad/down"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Controller"",
+                    ""action"": ""D-Pad Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a8fe4382-971c-47a6-be83-ce95bc407dac"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Mouse&Keyboard"",
+                    ""action"": ""D-Pad Left"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""492d5a9d-983d-4c99-97dc-1a99e6bdd4ed"",
+                    ""path"": ""<Gamepad>/dpad/left"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Controller"",
+                    ""action"": ""D-Pad Left"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f56f0a58-0e58-4c0c-9447-1fea14f9eed9"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Mouse&Keyboard"",
+                    ""action"": ""D-Pad Right"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""55ef98cd-a105-46b6-a684-ee367a99644b"",
+                    ""path"": ""<Gamepad>/dpad/right"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Controller"",
+                    ""action"": ""D-Pad Right"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -262,8 +394,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     ],
     ""controlSchemes"": [
         {
-            ""name"": ""PC"",
-            ""bindingGroup"": ""PC"",
+            ""name"": ""Mouse&Keyboard"",
+            ""bindingGroup"": ""Mouse&Keyboard"",
             ""devices"": [
                 {
                     ""devicePath"": ""<Mouse>"",
@@ -272,6 +404,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""devicePath"": ""<Keyboard>"",
+                    ""isOptional"": false,
+                    ""isOR"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Controller"",
+            ""bindingGroup"": ""Controller"",
+            ""devices"": [
+                {
+                    ""devicePath"": ""<Gamepad>"",
                     ""isOptional"": false,
                     ""isOR"": false
                 }
@@ -288,12 +431,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_PlayerActions_Roll = m_PlayerActions.FindAction("Roll", throwIfNotFound: true);
         m_PlayerActions_RB = m_PlayerActions.FindAction("RB", throwIfNotFound: true);
         m_PlayerActions_RT = m_PlayerActions.FindAction("RT", throwIfNotFound: true);
+        // Player Quick Slots
+        m_PlayerQuickSlots = asset.FindActionMap("Player Quick Slots", throwIfNotFound: true);
+        m_PlayerQuickSlots_DPadUp = m_PlayerQuickSlots.FindAction("D-Pad Up", throwIfNotFound: true);
+        m_PlayerQuickSlots_DPadDown = m_PlayerQuickSlots.FindAction("D-Pad Down", throwIfNotFound: true);
+        m_PlayerQuickSlots_DPadLeft = m_PlayerQuickSlots.FindAction("D-Pad Left", throwIfNotFound: true);
+        m_PlayerQuickSlots_DPadRight = m_PlayerQuickSlots.FindAction("D-Pad Right", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
     {
         UnityEngine.Debug.Assert(!m_PlayerMovement.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerMovement.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_PlayerActions.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerActions.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_PlayerQuickSlots.enabled, "This will cause a leak and performance issues, PlayerControls.PlayerQuickSlots.Disable() has not been called.");
     }
 
     /// <summary>
@@ -590,17 +740,159 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="PlayerActionsActions" /> instance referencing this action map.
     /// </summary>
     public PlayerActionsActions @PlayerActions => new PlayerActionsActions(this);
-    private int m_PCSchemeIndex = -1;
+
+    // Player Quick Slots
+    private readonly InputActionMap m_PlayerQuickSlots;
+    private List<IPlayerQuickSlotsActions> m_PlayerQuickSlotsActionsCallbackInterfaces = new List<IPlayerQuickSlotsActions>();
+    private readonly InputAction m_PlayerQuickSlots_DPadUp;
+    private readonly InputAction m_PlayerQuickSlots_DPadDown;
+    private readonly InputAction m_PlayerQuickSlots_DPadLeft;
+    private readonly InputAction m_PlayerQuickSlots_DPadRight;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Player Quick Slots".
+    /// </summary>
+    public struct PlayerQuickSlotsActions
+    {
+        private @PlayerControls m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public PlayerQuickSlotsActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerQuickSlots/DPadUp".
+        /// </summary>
+        public InputAction @DPadUp => m_Wrapper.m_PlayerQuickSlots_DPadUp;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerQuickSlots/DPadDown".
+        /// </summary>
+        public InputAction @DPadDown => m_Wrapper.m_PlayerQuickSlots_DPadDown;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerQuickSlots/DPadLeft".
+        /// </summary>
+        public InputAction @DPadLeft => m_Wrapper.m_PlayerQuickSlots_DPadLeft;
+        /// <summary>
+        /// Provides access to the underlying input action "PlayerQuickSlots/DPadRight".
+        /// </summary>
+        public InputAction @DPadRight => m_Wrapper.m_PlayerQuickSlots_DPadRight;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_PlayerQuickSlots; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="PlayerQuickSlotsActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(PlayerQuickSlotsActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="PlayerQuickSlotsActions" />
+        public void AddCallbacks(IPlayerQuickSlotsActions instance)
+        {
+            if (instance == null || m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Add(instance);
+            @DPadUp.started += instance.OnDPadUp;
+            @DPadUp.performed += instance.OnDPadUp;
+            @DPadUp.canceled += instance.OnDPadUp;
+            @DPadDown.started += instance.OnDPadDown;
+            @DPadDown.performed += instance.OnDPadDown;
+            @DPadDown.canceled += instance.OnDPadDown;
+            @DPadLeft.started += instance.OnDPadLeft;
+            @DPadLeft.performed += instance.OnDPadLeft;
+            @DPadLeft.canceled += instance.OnDPadLeft;
+            @DPadRight.started += instance.OnDPadRight;
+            @DPadRight.performed += instance.OnDPadRight;
+            @DPadRight.canceled += instance.OnDPadRight;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="PlayerQuickSlotsActions" />
+        private void UnregisterCallbacks(IPlayerQuickSlotsActions instance)
+        {
+            @DPadUp.started -= instance.OnDPadUp;
+            @DPadUp.performed -= instance.OnDPadUp;
+            @DPadUp.canceled -= instance.OnDPadUp;
+            @DPadDown.started -= instance.OnDPadDown;
+            @DPadDown.performed -= instance.OnDPadDown;
+            @DPadDown.canceled -= instance.OnDPadDown;
+            @DPadLeft.started -= instance.OnDPadLeft;
+            @DPadLeft.performed -= instance.OnDPadLeft;
+            @DPadLeft.canceled -= instance.OnDPadLeft;
+            @DPadRight.started -= instance.OnDPadRight;
+            @DPadRight.performed -= instance.OnDPadRight;
+            @DPadRight.canceled -= instance.OnDPadRight;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="PlayerQuickSlotsActions.UnregisterCallbacks(IPlayerQuickSlotsActions)" />.
+        /// </summary>
+        /// <seealso cref="PlayerQuickSlotsActions.UnregisterCallbacks(IPlayerQuickSlotsActions)" />
+        public void RemoveCallbacks(IPlayerQuickSlotsActions instance)
+        {
+            if (m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="PlayerQuickSlotsActions.AddCallbacks(IPlayerQuickSlotsActions)" />
+        /// <seealso cref="PlayerQuickSlotsActions.RemoveCallbacks(IPlayerQuickSlotsActions)" />
+        /// <seealso cref="PlayerQuickSlotsActions.UnregisterCallbacks(IPlayerQuickSlotsActions)" />
+        public void SetCallbacks(IPlayerQuickSlotsActions instance)
+        {
+            foreach (var item in m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_PlayerQuickSlotsActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="PlayerQuickSlotsActions" /> instance referencing this action map.
+    /// </summary>
+    public PlayerQuickSlotsActions @PlayerQuickSlots => new PlayerQuickSlotsActions(this);
+    private int m_MouseKeyboardSchemeIndex = -1;
     /// <summary>
     /// Provides access to the input control scheme.
     /// </summary>
     /// <seealso cref="UnityEngine.InputSystem.InputControlScheme" />
-    public InputControlScheme PCScheme
+    public InputControlScheme MouseKeyboardScheme
     {
         get
         {
-            if (m_PCSchemeIndex == -1) m_PCSchemeIndex = asset.FindControlSchemeIndex("PC");
-            return asset.controlSchemes[m_PCSchemeIndex];
+            if (m_MouseKeyboardSchemeIndex == -1) m_MouseKeyboardSchemeIndex = asset.FindControlSchemeIndex("Mouse&Keyboard");
+            return asset.controlSchemes[m_MouseKeyboardSchemeIndex];
+        }
+    }
+    private int m_ControllerSchemeIndex = -1;
+    /// <summary>
+    /// Provides access to the input control scheme.
+    /// </summary>
+    /// <seealso cref="UnityEngine.InputSystem.InputControlScheme" />
+    public InputControlScheme ControllerScheme
+    {
+        get
+        {
+            if (m_ControllerSchemeIndex == -1) m_ControllerSchemeIndex = asset.FindControlSchemeIndex("Controller");
+            return asset.controlSchemes[m_ControllerSchemeIndex];
         }
     }
     /// <summary>
@@ -653,5 +945,41 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRT(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player Quick Slots" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="PlayerQuickSlotsActions.AddCallbacks(IPlayerQuickSlotsActions)" />
+    /// <seealso cref="PlayerQuickSlotsActions.RemoveCallbacks(IPlayerQuickSlotsActions)" />
+    public interface IPlayerQuickSlotsActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "D-Pad Up" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDPadUp(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "D-Pad Down" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDPadDown(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "D-Pad Left" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDPadLeft(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "D-Pad Right" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDPadRight(InputAction.CallbackContext context);
     }
 }

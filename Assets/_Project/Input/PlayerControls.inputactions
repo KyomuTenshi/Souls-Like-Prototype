@@ -43,7 +43,7 @@
                     "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "Movement",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -54,7 +54,7 @@
                     "path": "<Keyboard>/s",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "Movement",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -65,7 +65,7 @@
                     "path": "<Keyboard>/a",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "Movement",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -76,7 +76,7 @@
                     "path": "<Keyboard>/d",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "Movement",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -87,7 +87,7 @@
                     "path": "<Mouse>/delta",
                     "interactions": "",
                     "processors": "ScaleVector2",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "Camera",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -144,7 +144,7 @@
                     "path": "<Keyboard>/leftShift",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "Roll",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -155,7 +155,7 @@
                     "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "RB",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -166,8 +166,140 @@
                     "path": "<Keyboard>/r",
                     "interactions": "",
                     "processors": "",
-                    "groups": ";PC",
+                    "groups": "Mouse&Keyboard",
                     "action": "RT",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Player Quick Slots",
+            "id": "7686141e-586c-4c9e-a138-9942383faed9",
+            "actions": [
+                {
+                    "name": "D-Pad Up",
+                    "type": "Button",
+                    "id": "43b0ebc1-5e81-4ee0-ae2f-42b1275d46cb",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "D-Pad Down",
+                    "type": "Button",
+                    "id": "44874e02-3b2c-4ae1-831a-4d9db91a468b",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "D-Pad Left",
+                    "type": "Button",
+                    "id": "490bb31b-6f1f-4118-a4ca-2cf3e4d644e0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "D-Pad Right",
+                    "type": "Button",
+                    "id": "d22a7eef-8199-42a9-b573-00e31d54aada",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "6305b201-14c4-4df5-ba0b-37af9ac591f4",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Mouse&Keyboard",
+                    "action": "D-Pad Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0b9afeb3-836a-443e-a80f-46541c485220",
+                    "path": "<Gamepad>/dpad/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Controller",
+                    "action": "D-Pad Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4a33ba48-5cca-40b2-a946-7497e80a6549",
+                    "path": "<Keyboard>/downArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Mouse&Keyboard",
+                    "action": "D-Pad Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1c097efe-dad3-46c9-8186-7c37421fa507",
+                    "path": "<Gamepad>/dpad/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Controller",
+                    "action": "D-Pad Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a8fe4382-971c-47a6-be83-ce95bc407dac",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Mouse&Keyboard",
+                    "action": "D-Pad Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "492d5a9d-983d-4c99-97dc-1a99e6bdd4ed",
+                    "path": "<Gamepad>/dpad/left",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Controller",
+                    "action": "D-Pad Left",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f56f0a58-0e58-4c0c-9447-1fea14f9eed9",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Mouse&Keyboard",
+                    "action": "D-Pad Right",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "55ef98cd-a105-46b6-a684-ee367a99644b",
+                    "path": "<Gamepad>/dpad/right",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Controller",
+                    "action": "D-Pad Right",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
@@ -176,8 +308,8 @@
     ],
     "controlSchemes": [
         {
-            "name": "PC",
-            "bindingGroup": "PC",
+            "name": "Mouse&Keyboard",
+            "bindingGroup": "Mouse&Keyboard",
             "devices": [
                 {
                     "devicePath": "<Mouse>",
@@ -186,6 +318,17 @@
                 },
                 {
                     "devicePath": "<Keyboard>",
+                    "isOptional": false,
+                    "isOR": false
+                }
+            ]
+        },
+        {
+            "name": "Controller",
+            "bindingGroup": "Controller",
+            "devices": [
+                {
+                    "devicePath": "<Gamepad>",
                     "isOptional": false,
                     "isOR": false
                 }
