@@ -9,6 +9,7 @@ namespace SG {
         public bool leftHandSlot02Selected;
 
         HandEquipmentSlotUI[] handEquipmentSlots;
+        UIManager uiManager;
 
         public void LoadWeaponsOnEquipmentScreen(PlayerInventory playerInventory)
         {
@@ -39,22 +40,55 @@ namespace SG {
 
         public void SelectRightHandSlot01()
         {
+            ResetAllSelectedSlots();
             rightHandSlot01Selected = true;
+            OpenWeaponInventoryForSelectedSlot();
         }
 
         public void SelectRightHandSlot02()
         {
+            ResetAllSelectedSlots();
             rightHandSlot02Selected = true;
+            OpenWeaponInventoryForSelectedSlot();
         }
-        
+
         public void SelectLeftHandSlot01()
         {
+            ResetAllSelectedSlots();
             leftHandSlot01Selected = true;
+            OpenWeaponInventoryForSelectedSlot();
         }
 
         public void SelectLeftHandSlot02()
         {
+            ResetAllSelectedSlots();
             leftHandSlot02Selected = true;
+            OpenWeaponInventoryForSelectedSlot();
+        }
+
+        // Сбрасываем перед выбором нового слота: иначе после клика по двум слотам подряд
+        // оба флага остались бы true, и оружие ушло бы не в тот слот.
+        public void ResetAllSelectedSlots()
+        {
+            rightHandSlot01Selected = false;
+            rightHandSlot02Selected = false;
+            leftHandSlot01Selected = false;
+            leftHandSlot02Selected = false;
+        }
+
+        public bool TryGetSelectedSlot(out bool isLeft, out int slotIndex)
+        {
+            isLeft = leftHandSlot01Selected || leftHandSlot02Selected;
+            slotIndex = (rightHandSlot02Selected || leftHandSlot02Selected) ? 1 : 0;
+            return rightHandSlot01Selected || rightHandSlot02Selected || leftHandSlot01Selected || leftHandSlot02Selected;
+        }
+
+        // В туториале окна переключаются через SetActive в OnClick кнопок слотов в инспекторе.
+        // Здесь это сделано в коде, чтобы не перенастраивать кнопки в сцене.
+        void OpenWeaponInventoryForSelectedSlot()
+        {
+            uiManager ??= GetComponentInParent<UIManager>(true);
+            uiManager.OpenWeaponInventoryWindow();
         }
     }
 }

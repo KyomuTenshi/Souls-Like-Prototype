@@ -129,9 +129,10 @@ namespace SG {
             }
             else
             {
+                sprintFlag = false;
+
                 if (rollInputTimer > 0 && rollInputTimer < rollTapTime)
                 {
-                    sprintFlag = false;
                     rollFlag = true;
                 }
 

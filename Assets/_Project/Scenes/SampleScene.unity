@@ -5010,8 +5010,12 @@ PrefabInstance:
       value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 9161360969176049167, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
+      propertyPath: m_Interpolate
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9161360969176049167, guid: 34030d682be5f45e8a4191623ea82e60, type: 3}
       propertyPath: m_CollisionDetection
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5290,7 +5294,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4934145379983547484, guid: 942a9c45b75ca4252b207885a039b88e, type: 3}
       propertyPath: lookSpeed
-      value: 1.6
+      value: 0.16
       objectReference: {fileID: 0}
     - target: {fileID: 4934145379983547484, guid: 942a9c45b75ca4252b207885a039b88e, type: 3}
       propertyPath: pivotSpeed
@@ -6847,6 +6851,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SG.UIManager
   playerInventory: {fileID: 1654321581}
+  equipmentWindowUI: {fileID: 0}
   hudWindow: {fileID: 1889723827}
   selectWindow: {fileID: 933354511}
   weaponInventoryWindow: {fileID: 1417275070}

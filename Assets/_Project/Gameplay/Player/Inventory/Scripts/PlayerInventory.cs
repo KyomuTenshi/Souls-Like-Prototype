@@ -92,5 +92,33 @@ namespace SG {
                 weaponSlotManager.LoadWeaponOnSlot(unarmedWeapon, true);
             }
         }
+
+        public void EquipWeaponInHandSlot(WeaponItem weapon, bool isLeft, int slotIndex)
+        {
+            WeaponItem[] handSlots = isLeft ? weaponsInLeftHandSlots : weaponsInRightHandSlots;
+            WeaponItem previousWeapon = handSlots[slotIndex];
+
+            weaponInventory.Remove(weapon);
+
+            // В туториале старое оружие добавляется без проверки: пустой слот положил бы в инвентарь null,
+            // и UpdateUI упал бы на item.itemIcon.
+            if (previousWeapon != null)
+                weaponInventory.Add(previousWeapon);
+
+            handSlots[slotIndex] = weapon;
+
+            // Модель меняется, только если этот слот сейчас в руке. При индексе -1 в руке unarmedWeapon
+            // (в туториале здесь weaponsInRightHandSlots[currentRightWeaponIndex] — с -1 это IndexOutOfRange).
+            if (isLeft && currentLeftWeaponIndex == slotIndex)
+            {
+                leftWeapon = weapon;
+                weaponSlotManager.LoadWeaponOnSlot(weapon, true);
+            }
+            else if (!isLeft && currentRightWeaponIndex == slotIndex)
+            {
+                rightWeapon = weapon;
+                weaponSlotManager.LoadWeaponOnSlot(weapon, false);
+            }
+        }
     }
 }

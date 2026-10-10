@@ -54,12 +54,22 @@ namespace SG {
             // Спринт учитывается только при движении: удержание кнопки на месте не должно включать анимацию спринта.
             isSprinting = inputHandler.b_input && inputHandler.moveAmount > 0;
             inputHandler.TickInput(delta);
-            playerLocomotion.HandleMovement(delta);
+
+            // Ролл и прыжок остаются в Update (в туториале — FixedUpdate): rollFlag и jump_Input живут один кадр
+            // и сбрасываются в LateUpdate, а FixedUpdate вызывается до Update и их бы не увидел.
+            playerLocomotion.HandleSoftLanding(delta);
             playerLocomotion.HandleRollingAndSprinting(delta);
-            playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
             playerLocomotion.HandleJumping();
 
             CheckForInteractableObject();
+        }
+
+        private void FixedUpdate()
+        {
+            float delta = Time.fixedDeltaTime;
+
+            playerLocomotion.HandleMovement(delta);
+            playerLocomotion.HandleFalling(delta, playerLocomotion.moveDirection);
         }
 
         // Камера обновляется в LateUpdate (в туториале — FixedUpdate): каждый кадр и после перемещения персонажа.
@@ -74,8 +84,9 @@ namespace SG {
                 cameraHandler.HandleCameraRotation(delta, inputHandler.mouseX, inputHandler.mouseY);
             }
 
+            // sprintFlag сбрасывается в InputHandler при отпускании кнопки (в туториале — здесь каждый кадр):
+            // HandleMovement теперь в FixedUpdate, и сброшенный флаг он бы никогда не увидел.
             inputHandler.rollFlag = false;
-            inputHandler.sprintFlag = false;
             inputHandler.rb_Input = false;
             inputHandler.rt_Input = false;
             inputHandler.d_Pad_Up = false;
@@ -86,7 +97,9 @@ namespace SG {
             inputHandler.jump_Input = false;
             inputHandler.inventory_Input = false;
 
-            if (isInAir)
+            // Время в воздухе считается только при движении вниз (в туториале — всё время в воздухе):
+            // иначе подъём в прыжке превращал бы обычное приземление в тяжёлое (Land).
+            if (isInAir && playerLocomotion.rigidbody.linearVelocity.y < 0)
             {
                 playerLocomotion.inAirTimer = playerLocomotion.inAirTimer + Time.deltaTime;
             }
