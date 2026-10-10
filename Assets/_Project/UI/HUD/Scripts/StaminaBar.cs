@@ -6,7 +6,7 @@ namespace SG {
     {
         public Slider slider;
 
-        public void Start()
+        private void Awake()
         {
             slider = GetComponent<Slider>();
         }

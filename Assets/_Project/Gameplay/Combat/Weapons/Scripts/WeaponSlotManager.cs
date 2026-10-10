@@ -20,7 +20,7 @@ namespace SG {
         private void Awake()
         {
             animator = GetComponent<Animator>();
-            quickSlotUI = FindObjectOfType<QuickSlotUI>();
+            quickSlotUI = FindFirstObjectByType<QuickSlotUI>();
             playerStats = GetComponentInParent<PlayerStats>();
 
             WeaponHolderSlot[] weaponHolderSlots = GetComponentsInChildren<WeaponHolderSlot>();
