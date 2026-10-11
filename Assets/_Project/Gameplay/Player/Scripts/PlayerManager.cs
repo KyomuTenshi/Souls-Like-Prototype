@@ -28,10 +28,11 @@ namespace SG {
         [Tooltip("Высота центра зоны поиска над точкой персонажа, м")]
         public float interactCheckHeight = 0.5f;
 
-        public void Awake()
+        private void Awake()
         {
-            cameraHandler = FindObjectOfType<CameraHandler>();
+            cameraHandler = FindFirstObjectByType<CameraHandler>();
         }
+
         void Start()
         {
             // Синглтон берётся в Start: в Awake CameraHandler мог ещё не инициализироваться.
@@ -106,8 +107,8 @@ namespace SG {
 
                 if (interactableObject != null)
                 {
-                    string interactableText = interactableObject.interactbleText;
-                    interactableUI.interavtableText.text = interactableText;
+                    string interactableText = interactableObject.interactableText;
+                    interactableUI.interactableText.text = interactableText;
                     interactableUIGameObject.SetActive(true);
 
                     if (inputHandler.a_Input && !isInteracting)

@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace SG {
     public class Interactable : MonoBehaviour
     {
         public float radius = 0.6f;
-        public string interactbleText;
+        [FormerlySerializedAs("interactbleText")]
+        public string interactableText;
 
         private void OnDrawGizmosSelected()
         {

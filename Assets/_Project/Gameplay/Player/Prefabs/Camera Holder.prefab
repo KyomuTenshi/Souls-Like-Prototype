@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1605152156367923103}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.7, z: 0}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -80,9 +80,12 @@ MonoBehaviour:
   targetTransform: {fileID: 0}
   cameraTransform: {fileID: 1123438287611307611}
   cameraPivotTransform: {fileID: 3632903964587945925}
-  lookSpeed: 1.7
-  pivotSpeed: 1.5
-  followSmoothTime: 0.05
+  ignoreLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  lookSpeed: 1.6
+  pivotSpeed: 1.6
+  followSmoothTime: 0.08
   cameraSphereRadius: 0.2
   cameraCollisionOffset: 0.2
   minimumCollisionOffset: 0.2
@@ -114,7 +117,7 @@ Transform:
   m_GameObject: {fileID: 5409282760819706656}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -3.6}
+  m_LocalPosition: {x: 0, y: 0, z: -4.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -153,7 +156,7 @@ Camera:
     height: 1
   near clip plane: 0.15
   far clip plane: 1000
-  field of view: 62
+  field of view: 68
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
