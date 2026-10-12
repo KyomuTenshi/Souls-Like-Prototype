@@ -3,6 +3,7 @@ using UnityEngine;
 namespace SG {
     public class PlayerLocomotion : MonoBehaviour
     {
+        CameraHandler cameraHandler;
         PlayerManager playerManager;
         Transform cameraObject;
         InputHandler inputHandler;
@@ -109,6 +110,10 @@ namespace SG {
         float sprintReleaseGrace = 0.25f;
         #endregion
 
+        private void Awake()
+        {
+            cameraHandler = FindFirstObjectByType<CameraHandler>();
+        }
         void Start()
         {
             playerManager = GetComponent<PlayerManager>();
@@ -130,29 +135,72 @@ namespace SG {
         #region Movement
         private void HandleRotation(float delta)
         {
-            Vector3 targetDir = Vector3.zero;
+            if (inputHandler.lockOnFlag)
+            {
+                if (inputHandler.sprintFlag || inputHandler.rollFlag)
+                {
+                    Vector3 targetDirection = Vector3.zero;
+                    targetDirection = cameraHandler.cameraTransform.forward * inputHandler.vertical;
+                    targetDirection += cameraHandler.cameraTransform.right * inputHandler.horizontal;
+                    targetDirection.Normalize();
+                    targetDirection.y = 0;
 
-            targetDir = cameraObject.forward * inputHandler.vertical;
-            targetDir += cameraObject.right * inputHandler.horizontal;
+                    if (targetDirection == Vector3.zero)
+                    {
+                        targetDirection = myTransform.forward;
+                    }
 
-            targetDir.Normalize();
-            targetDir.y = 0;
+                    Quaternion tr = Quaternion.LookRotation(targetDirection);
+                    Quaternion targetRotation = Quaternion.Slerp(myTransform.rotation, tr, rotationSpeed * delta);
 
-            if (targetDir == Vector3.zero)
-                targetDir = myTransform.forward;
+                    myTransform.rotation = targetRotation;
+                }
+                else
+                {
+                    Vector3 rotationDirection = moveDirection;
+                    rotationDirection = cameraHandler.currentLockOnTarget.transform.position - transform.position;
+                    rotationDirection.y = 0;
+                    rotationDirection.Normalize();
+                    Quaternion tr = Quaternion.LookRotation(rotationDirection);
+                    Quaternion targetRotation = Quaternion.Slerp(myTransform.rotation, tr, rotationSpeed * Time.deltaTime);
+                    transform.rotation = targetRotation;
 
-            float rs = rotationSpeed;
+                }
+            }
+            else
+            {
+                Vector3 targetDir = Vector3.zero;
 
-            Quaternion tr = Quaternion.LookRotation(targetDir);
-            Quaternion targetRotation = Quaternion.Slerp(myTransform.rotation, tr, rs * delta);
+                targetDir = cameraObject.forward * inputHandler.vertical;
+                targetDir += cameraObject.right * inputHandler.horizontal;
 
-            myTransform.rotation = targetRotation;
+                targetDir.Normalize();
+                targetDir.y = 0;
+
+                if (targetDir == Vector3.zero)
+                    targetDir = myTransform.forward;
+
+                float rs = rotationSpeed;
+
+                Quaternion tr = Quaternion.LookRotation(targetDir);
+                Quaternion targetRotation = Quaternion.Slerp(myTransform.rotation, tr, rs * delta);
+
+                myTransform.rotation = targetRotation;
+            }
         }
 
         public void HandleMovement(float delta)
         {
             // Вызов перенесён выше ранних return, чтобы параметры Animator обновлялись и во время действий.
-            animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, playerManager.isSprinting);
+            // При захвате цели (без спринта) передаются оси ввода — для стрейфа и шага назад.
+            if (inputHandler.lockOnFlag && inputHandler.sprintFlag == false)
+            {
+                animatorHandler.UpdateAnimatorValues(inputHandler.vertical, inputHandler.horizontal, playerManager.isSprinting);
+            }
+            else
+            {
+                animatorHandler.UpdateAnimatorValues(inputHandler.moveAmount, 0, playerManager.isSprinting);
+            }
 
             // Во время действия скорость и поворот задаёт само действие, а не ввод игрока.
             if (animatorHandler.anim.GetBool("isInteracting"))

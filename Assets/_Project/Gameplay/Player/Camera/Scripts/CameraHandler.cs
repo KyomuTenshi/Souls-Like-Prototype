@@ -5,12 +5,15 @@ namespace SG {
     public class CameraHandler : MonoBehaviour
     {
         InputHandler inputHandler;
+        PlayerManager playerManager;
+
         public Transform targetTransform;
         public Transform cameraTransform;
         public Transform cameraPivotTransform;
         private Transform myTransform;
         private Vector3 cameraTransformPosition;
         public LayerMask ignoreLayers;
+        public LayerMask enviromentLayer;
         private Vector3 cameraFollowVelocity = Vector3.zero;
 
         public static CameraHandler singleton;
@@ -35,6 +38,8 @@ namespace SG {
         public float cameraSphereRadius = 0.2f;
         public float cameraCollisionOffset = 0.2f;
         public float minimumCollisionOffset = 0.2f;
+        public float lockedPivotPosition = 2.25f;
+        public float unlockedPivotPosition = 1.65f;
 
         public Transform currentLockOnTarget;
 
@@ -50,12 +55,17 @@ namespace SG {
             myTransform = transform;
             defaultPosition = cameraTransform.localPosition.z;
             ignoreLayers = ~(1 << 8 | 1 << 9 | 1 << 10);
-            PlayerManager playerManager = FindFirstObjectByType<PlayerManager>();
+            playerManager = FindFirstObjectByType<PlayerManager>();
             if (playerManager != null)
             {
                 targetTransform = playerManager.transform;
             }
             inputHandler = FindFirstObjectByType<InputHandler>();
+        }
+
+        public void Start()
+        {
+            enviromentLayer = LayerMask.NameToLayer("Environment");
         }
 
         public void FollowTarget(float delta)
@@ -88,8 +98,6 @@ namespace SG {
             }
             else 
             {
-                float velocity = 0;
-
                 Vector3 dir = currentLockOnTarget.position - transform.position;
                 dir.Normalize();
                 dir.y = 0;
@@ -156,10 +164,22 @@ namespace SG {
                     Vector3 lockTargetDirection = character.transform.position - targetTransform.position;
                     float distanceFromTarget = Vector3.Distance(targetTransform.position, character.lockOnTransform.position);
                     float viewableAngle = Vector3.Angle(lockTargetDirection, cameraTransform.forward);
+                    RaycastHit hit;
 
                     if (character.transform.root != targetTransform.transform.root 
                         && viewableAngle > -50 && viewableAngle < 50 && distanceFromTarget <= maximumLockOnDistance)
                     {
+                        Debug.DrawLine(playerManager.lockOnTransform.position, character.lockOnTransform.position);
+
+                        // Враги за стеной не добавляются в список. Если луч ничего не задел, обзор свободен
+                        // и враг добавляется (в туториале добавлялся только при попадании луча).
+                        // Триггеры игнорируются, иначе зоны огня/предметов перекрывали бы цель.
+                        if (Physics.Linecast(playerManager.lockOnTransform.position, character.lockOnTransform.position, out hit, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                            && hit.transform.gameObject.layer == enviromentLayer)
+                        {
+                            continue;
+                        }
+
                         aviableTargets.Add(character);
                     }
                 }
@@ -209,6 +229,22 @@ namespace SG {
             leftLockOnTarget = null;
             rightLockOnTarget = null;
             currentLockOnTarget = null;
+        }
+
+        public void SetCameraHeight()
+        {
+            Vector3 velocity = Vector3.zero;
+            Vector3 newLockedPivotPosition = new Vector3(0, lockedPivotPosition);
+            Vector3 newUnlockedPivotPosition = new Vector3(0, unlockedPivotPosition);
+
+            if (currentLockOnTarget != null)
+            {
+                cameraPivotTransform.transform.localPosition = Vector3.SmoothDamp(cameraPivotTransform.transform.localPosition, newLockedPivotPosition, ref velocity, Time.deltaTime);
+            }
+            else
+            {
+                cameraPivotTransform.transform.localPosition = Vector3.SmoothDamp(cameraPivotTransform.transform.localPosition, newUnlockedPivotPosition, ref velocity, Time.deltaTime);
+            }
         }
     }
 }

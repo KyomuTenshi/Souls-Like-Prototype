@@ -101,8 +101,10 @@ namespace SG {
 
         private void UpdateArmLayerWeights()
         {
-            // Берём уже сглаженное значение Vertical, чтобы вес менялся синхронно с blend tree локомоции.
-            float speed = Mathf.Abs(anim.GetFloat(vertical));
+            // Берём уже сглаженные значения, чтобы вес менялся синхронно с blend tree локомоции.
+            // В лок-оне персонаж ходит и вбок, поэтому скорость — наибольшая из двух осей,
+            // иначе при стрейфе (Vertical = 0) руки застывали бы в позе Idle.
+            float speed = Mathf.Max(Mathf.Abs(anim.GetFloat(vertical)), Mathf.Abs(anim.GetFloat(horizontal)));
             float weight = speed <= 1
                 ? Mathf.Lerp(armLayerIdleWeight, armLayerMoveWeight, speed)
                 : Mathf.Lerp(armLayerMoveWeight, armLayerSprintWeight, speed - 1);
