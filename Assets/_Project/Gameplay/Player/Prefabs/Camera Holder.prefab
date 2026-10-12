@@ -83,12 +83,22 @@ MonoBehaviour:
   ignoreLayers:
     serializedVersion: 2
     m_Bits: 0
+  enviromentLayer:
+    serializedVersion: 2
+    m_Bits: 0
   lookSpeed: 1.6
   pivotSpeed: 1.6
   followSmoothTime: 0.08
   cameraSphereRadius: 0.2
   cameraCollisionOffset: 0.2
   minimumCollisionOffset: 0.2
+  lockedPivotPosition: 2.25
+  unlockedPivotPosition: 1.65
+  currentLockOnTarget: {fileID: 0}
+  nearestLockOnTarget: {fileID: 0}
+  leftLockOnTarget: {fileID: 0}
+  rightLockOnTarget: {fileID: 0}
+  maximumLockOnDistance: 30
 --- !u!1 &5409282760819706656
 GameObject:
   m_ObjectHideFlags: 0

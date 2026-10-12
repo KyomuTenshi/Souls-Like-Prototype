@@ -5,6 +5,7 @@ namespace SG {
     public class WeaponInventorySlot : MonoBehaviour
     {
         PlayerInventory playerInventory;
+        WeaponSlotManager weaponSlotManager;
         UIManager uiManager;
 
         public Image icon;
@@ -13,6 +14,9 @@ namespace SG {
         private void Awake()
         {
             playerInventory = FindFirstObjectByType<PlayerInventory>();
+            // В туториале — FindObjectOfType<WeaponSlotManager>(). Берём менеджер именно игрока:
+            // когда у врагов появится свой WeaponSlotManager, поиск по сцене может вернуть вражеский.
+            weaponSlotManager = playerInventory.GetComponentInChildren<WeaponSlotManager>();
             uiManager = GetComponentInParent<UIManager>(true);
         }
 
@@ -34,18 +38,56 @@ namespace SG {
 
         public void EquipThisItem()
         {
-            EquipmentWindowUI equipmentWindowUI = uiManager.equipmentWindowUI;
-
-            // Окно инвентаря открыто не из окна экипировки — выбранного слота нет, экипировать некуда.
-            if (item == null || !equipmentWindowUI.TryGetSelectedSlot(out bool isLeft, out int slotIndex))
+            if (uiManager.rightHandSlot01Selected)
+            {
+                SwapWithHandSlot(playerInventory.weaponsInRightHandSlots, 0);
+            }
+            else if (uiManager.rightHandSlot02Selected)
+            {
+                SwapWithHandSlot(playerInventory.weaponsInRightHandSlots, 1);
+            }
+            else if (uiManager.leftHandSlot01Selected)
+            {
+                SwapWithHandSlot(playerInventory.weaponsInLeftHandSlots, 0);
+            }
+            else if (uiManager.leftHandSlot02Selected)
+            {
+                SwapWithHandSlot(playerInventory.weaponsInLeftHandSlots, 1);
+            }
+            else
+            {
+                // Окно инвентаря открыто не из окна экипировки — слот не выбран, экипировать некуда.
                 return;
+            }
 
-            playerInventory.EquipWeaponInHandSlot(item, isLeft, slotIndex);
+            // В туториале индекс берётся без проверки. При -1 в руке unarmedWeapon,
+            // и weaponsInRightHandSlots[-1] дал бы IndexOutOfRangeException.
+            if (playerInventory.currentRightWeaponIndex >= 0)
+                playerInventory.rightWeapon = playerInventory.weaponsInRightHandSlots[playerInventory.currentRightWeaponIndex];
+            if (playerInventory.currentLeftWeaponIndex >= 0)
+                playerInventory.leftWeapon = playerInventory.weaponsInLeftHandSlots[playerInventory.currentLeftWeaponIndex];
 
-            equipmentWindowUI.ResetAllSelectedSlots();
-            equipmentWindowUI.LoadWeaponsOnEquipmentScreen(playerInventory);
+            weaponSlotManager.LoadWeaponOnSlot(playerInventory.rightWeapon, false);
+            weaponSlotManager.LoadWeaponOnSlot(playerInventory.leftWeapon, true);
+            uiManager.equipmentWindowUI.LoadWeaponsOnEquipmentScreen(playerInventory);
+            uiManager.ResetAllSelectedSlots();
+
+            // В туториале этого нет: без UpdateUI в списке инвентаря остаётся надетое оружие и не появляется снятое.
+            // Окна переключаются здесь, а не в OnClick кнопки: префаб слота не может ссылаться на окна в сцене.
             uiManager.UpdateUI();
             uiManager.OpenEquipmentWindow();
+        }
+
+        // Кладёт этот предмет в слот руки, а оружие из слота возвращает в инвентарь.
+        void SwapWithHandSlot(WeaponItem[] handSlots, int slotIndex)
+        {
+            // В туториале старое оружие добавляется без проверки: из пустого слота в инвентарь попал бы null,
+            // и UpdateUI упал бы на item.itemIcon.
+            if (handSlots[slotIndex] != null)
+                playerInventory.weaponInventory.Add(handSlots[slotIndex]);
+
+            handSlots[slotIndex] = item;
+            playerInventory.weaponInventory.Remove(item);
         }
     }
 }

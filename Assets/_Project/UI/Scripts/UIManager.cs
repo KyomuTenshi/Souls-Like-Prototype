@@ -9,18 +9,19 @@ namespace SG {
         [Header("UI Windows")]
         public GameObject hudWindow;
         public GameObject selectWindow;
-        public GameObject weaponInventoryWindow;
         public GameObject equipmentScreenWindow;
+        public GameObject weaponInventoryWindow;
+
+        [Header("Equipment Window Slot Selected")]
+        public bool rightHandSlot01Selected;
+        public bool rightHandSlot02Selected;
+        public bool leftHandSlot01Selected;
+        public bool leftHandSlot02Selected;
 
         [Header("Weapon Inventory Slots")]
         public GameObject weaponInventorySlotPrefab;
         public Transform weaponInventorySlotParent;
         WeaponInventorySlot[] weaponInventorySlots;
-
-        public void Awake()
-        {
-            equipmentWindowUI = GetComponentInChildren<EquipmentWindowUI>(true);
-        }
 
         public void Start()
         {
@@ -71,7 +72,7 @@ namespace SG {
         {
             weaponInventoryWindow.SetActive(false);
             equipmentScreenWindow.SetActive(false);
-            equipmentWindowUI.ResetAllSelectedSlots();
+            ResetAllSelectedSlots();
         }
 
         public void OpenWeaponInventoryWindow()
@@ -82,8 +83,17 @@ namespace SG {
 
         public void OpenEquipmentWindow()
         {
+            ResetAllSelectedSlots();
             weaponInventoryWindow.SetActive(false);
             equipmentScreenWindow.SetActive(true);
+        }
+
+        public void ResetAllSelectedSlots()
+        {
+            rightHandSlot01Selected = false;
+            rightHandSlot02Selected = false;
+            leftHandSlot01Selected = false;
+            leftHandSlot02Selected = false;
         }
     }
 }
