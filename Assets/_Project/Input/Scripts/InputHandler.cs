@@ -202,6 +202,11 @@ namespace SG {
 
         private void HandleQuickSlotsInput()
         {
+            // Оружие не меняется посреди атаки или ролла (в туториале проверки нет), как и хват в HandleTwoHandInput:
+            // иначе новая модель появлялась в руке посреди удара старым оружием.
+            if (playerManager.isInteracting)
+                return;
+
             if (d_Pad_Right)
             {
                 playerInventory.ChangeRightWeapon();

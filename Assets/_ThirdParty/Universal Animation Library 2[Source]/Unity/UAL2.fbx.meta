@@ -2537,6 +2537,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.25
+        functionName: DrainStaminaHeavyAttack
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -2854,6 +2861,13 @@ ModelImporter:
         messageOptions: 0
       - time: 0.90000004
         functionName: CloseRightHandDamageCollider
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.25
+        functionName: DrainStaminaLightAttack
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

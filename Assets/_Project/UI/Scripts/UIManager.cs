@@ -27,6 +27,11 @@ namespace SG {
         {
             weaponInventorySlots = weaponInventorySlotParent.GetComponentsInChildren<WeaponInventorySlot>(true);
             equipmentWindowUI.LoadWeaponsOnEquipmentScreen(playerInventory);
+
+            // Курсор прячется сразу при старте (в туториале — только после первого закрытия меню):
+            // иначе при повороте камеры он уходил за край окна, а клик мог попасть в другое окно.
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         public void UpdateUI()
         {
