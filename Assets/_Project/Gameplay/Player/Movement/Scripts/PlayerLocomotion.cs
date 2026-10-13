@@ -166,7 +166,7 @@ namespace SG {
                 else
                 {
                     moveDirection *= speed;
-                    playerManager.isInteracting = false;
+                    playerManager.isSprinting = false;
                 }
             }
 

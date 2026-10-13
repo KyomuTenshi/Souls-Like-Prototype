@@ -54,8 +54,13 @@ namespace SG {
             }
         }
 
+        // Атака пропускается, если у оружия не задана анимация (например, Unarmed): иначе PlayTargetAnimation
+        // ставил isInteracting = true, переход в пустое состояние не выполнялся, и персонаж замирал.
         public void HandleLightAttack(WeaponItem weapon)
         {
+            if (weapon == null || string.IsNullOrEmpty(weapon.OH_Light_Attack_1))
+                return;
+
             weaponSlotManager.attackingWeapon = weapon;
             animatorHandler.PlayTargetAnimation(weapon.OH_Light_Attack_1, true);
             lastAttack = weapon.OH_Light_Attack_1;
@@ -63,6 +68,9 @@ namespace SG {
 
         public void HandleHeavyAttack(WeaponItem weapon)
         {
+            if (weapon == null || string.IsNullOrEmpty(weapon.OH_Heavy_Attack_1))
+                return;
+
             weaponSlotManager.attackingWeapon = weapon;
             animatorHandler.PlayTargetAnimation(weapon.OH_Heavy_Attack_1, true);
             lastAttack = weapon.OH_Heavy_Attack_1;
