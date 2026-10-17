@@ -194,19 +194,24 @@ namespace SG {
 
         private void HandleInventoryInput()
         {
-            // Подписка на Inventory вынесена в OnEnable, чтобы обработчики не копились каждый кадр.
-            // Сброс inventory_Input выполняется в PlayerManager.LateUpdate.
             if (inventory_Input)
             {
                 inventoryFlag = !inventoryFlag;
 
-                if (inventoryFlag)
+                if (uiManager != null)
                 {
-                    uiManager.OpenSelectWindow();
-                }
-                else
-                {
-                    uiManager.CloseSelectWindow();
+                    if (inventoryFlag)
+                    {
+                        uiManager.OpenSelectWindow();
+                        uiManager.UpdateUI();
+                        uiManager.hudWindow.SetActive(false);
+                    }
+                    else
+                    {
+                        uiManager.CloseSelectWindow();
+                        uiManager.CloseAllInventoryWindows();
+                        uiManager.hudWindow.SetActive(true);
+                    }
                 }
             }
         }

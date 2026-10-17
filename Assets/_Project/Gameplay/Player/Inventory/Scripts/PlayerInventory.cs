@@ -11,8 +11,8 @@ namespace SG {
 
         public WeaponItem unarmedWeapon;
 
-        public WeaponItem[] weaponsInRightHandSlots = new WeaponItem[1];
-        public WeaponItem[] weaponsInLeftHandSlots = new WeaponItem[1];
+        public WeaponItem[] weaponsInRightHandSlots = new WeaponItem[2];
+        public WeaponItem[] weaponsInLeftHandSlots = new WeaponItem[2];
 
         public int currentRightWeaponIndex = -1;
         public int currentLeftWeaponIndex = -1;

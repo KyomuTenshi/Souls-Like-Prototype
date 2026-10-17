@@ -10,7 +10,6 @@ namespace SG {
         private void Awake()
         {
             damageCollider = GetComponent<Collider>();
-            damageCollider.gameObject.SetActive(true);
             damageCollider.isTrigger = true;
             damageCollider.enabled = false;
         }

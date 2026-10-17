@@ -12,9 +12,7 @@ namespace SG {
         public WeaponItem attackingWeapon;
 
         Animator animator;
-
         QuickSlotUI quickSlotUI;
-
         PlayerStats playerStats;
 
         private void Awake()
@@ -43,7 +41,9 @@ namespace SG {
             {
                 leftHandSlot.LoadWeaponModel(weaponItem);
                 LoadLeftWeaponDamageCollider();
-                quickSlotUI.UpdateWeaponQuickSlotUI(true, weaponItem);
+                
+                if (quickSlotUI != null)
+                    quickSlotUI.UpdateWeaponQuickSlotUI(true, weaponItem);
 
                 #region Handle Left Weapon Idle Animations
                 if (weaponItem != null)
@@ -60,7 +60,9 @@ namespace SG {
             {
                 rightHandSlot.LoadWeaponModel(weaponItem);
                 LoadRightWeaponDamageCollider();
-                quickSlotUI.UpdateWeaponQuickSlotUI(false, weaponItem);
+                
+                if (quickSlotUI != null)
+                    quickSlotUI.UpdateWeaponQuickSlotUI(false, weaponItem);
 
                 #region Handle Right Weapon Idle Animations
                 if (weaponItem != null)
@@ -79,32 +81,42 @@ namespace SG {
 
         private void LoadLeftWeaponDamageCollider()
         {
-            leftHandDamageCollider = leftHandSlot.currentWeaponModel.GetComponentInChildren<DamageCollider>();
+            if (leftHandSlot.currentWeaponModel != null)
+                leftHandDamageCollider = leftHandSlot.currentWeaponModel.GetComponentInChildren<DamageCollider>();
+            else
+                leftHandDamageCollider = null;
         }
 
         private void LoadRightWeaponDamageCollider()
         {
-            rightHandDamageCollider = rightHandSlot.currentWeaponModel.GetComponentInChildren<DamageCollider>();
+            if (rightHandSlot.currentWeaponModel != null)
+                rightHandDamageCollider = rightHandSlot.currentWeaponModel.GetComponentInChildren<DamageCollider>();
+            else
+                rightHandDamageCollider = null;
         }
 
         public void OpenRightDamageCollider()
         {
-            rightHandDamageCollider.EnableDamageCollider();
+            if (rightHandDamageCollider != null)
+                rightHandDamageCollider.EnableDamageCollider();
         }
 
         public void OpenLeftDamageCollider()
         {
-            leftHandDamageCollider.EnableDamageCollider();
+            if (leftHandDamageCollider != null)
+                leftHandDamageCollider.EnableDamageCollider();
         }
 
         public void CloseRightHandDamageCollider()
         {
-            rightHandDamageCollider.DisableDamageCollider();
+            if (rightHandDamageCollider != null)
+                rightHandDamageCollider.DisableDamageCollider();
         }
 
         public void CloseLeftHandDamageCollider()
         {
-            leftHandDamageCollider.DisableDamageCollider();
+            if (leftHandDamageCollider != null)
+                leftHandDamageCollider.DisableDamageCollider();
         }
 
         #endregion
@@ -112,14 +124,15 @@ namespace SG {
         #region Handle Weapon's Stamina Drain
         public void DrainStaminaLightAttack()
         {
-            playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.lightAttackMultiplier));
+            if (attackingWeapon != null)
+                playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.lightAttackMultiplier));
         }
 
         public void DrainStaminaHeavyAttack()
         {
-            playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.heavyAttackMultiplier));
+            if (attackingWeapon != null)
+                playerStats.TakeStaminaDamage(Mathf.RoundToInt(attackingWeapon.baseStamina * attackingWeapon.heavyAttackMultiplier));
         }
-
         #endregion
     }
 }
