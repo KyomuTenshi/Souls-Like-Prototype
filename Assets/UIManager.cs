@@ -4,20 +4,28 @@ namespace SG {
     public class UIManager : MonoBehaviour
     {
         public PlayerInventory playerInventory;
+        EquipmentWindowUI equipmentWindowUI;
 
         [Header("UI Windows")]
         public GameObject hudWindow;
         public GameObject selectWindow;
         public GameObject weaponInventoryWindow;
+        public GameObject equipmentScreenWindow;
 
         [Header("Weapon Inventory Slots")]
         public GameObject weaponInventorySlotPrefab;
         public Transform weaponInventorySlotParent;
         WeaponInventorySlot[] weaponInventorySlots;
 
+        public void Awake()
+        {
+            equipmentWindowUI = GetComponentInChildren<EquipmentWindowUI>(true);
+        }
+
         public void Start()
         {
-            weaponInventorySlots = weaponInventorySlotParent.GetComponentsInChildren<WeaponInventorySlot>();
+            weaponInventorySlots = weaponInventorySlotParent.GetComponentsInChildren<WeaponInventorySlot>(true);
+            equipmentWindowUI.LoadWeaponsOnEquipmentScreen(playerInventory);
         }
         public void UpdateUI()
         {
@@ -27,10 +35,10 @@ namespace SG {
             {
                 if (i < playerInventory.weaponInventory.Count)
                 {
-                    if (weaponInventorySlots.Length > playerInventory.weaponInventory.Count)
+                    if (weaponInventorySlots.Length < playerInventory.weaponInventory.Count)
                     {
                         Instantiate(weaponInventorySlotPrefab, weaponInventorySlotParent);
-                        weaponInventorySlots = weaponInventorySlotParent.GetComponentsInChildren<WeaponInventorySlot>();
+                        weaponInventorySlots = weaponInventorySlotParent.GetComponentsInChildren<WeaponInventorySlot>(true);
                     }
                     weaponInventorySlots[i].AddItem(playerInventory.weaponInventory[i]);
                 }
@@ -62,6 +70,7 @@ namespace SG {
         public void CloseAllInventoryWindows()
         {
             weaponInventoryWindow.SetActive(false);
+            equipmentScreenWindow.SetActive(false);
         }
     }
 }
