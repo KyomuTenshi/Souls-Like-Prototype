@@ -4,7 +4,7 @@ namespace SG {
     public class UIManager : MonoBehaviour
     {
         public PlayerInventory playerInventory;
-        EquipmentWindowUI equipmentWindowUI;
+        public EquipmentWindowUI equipmentWindowUI;
 
         [Header("UI Windows")]
         public GameObject hudWindow;
@@ -71,6 +71,19 @@ namespace SG {
         {
             weaponInventoryWindow.SetActive(false);
             equipmentScreenWindow.SetActive(false);
+            equipmentWindowUI.ResetAllSelectedSlots();
+        }
+
+        public void OpenWeaponInventoryWindow()
+        {
+            equipmentScreenWindow.SetActive(false);
+            weaponInventoryWindow.SetActive(true);
+        }
+
+        public void OpenEquipmentWindow()
+        {
+            weaponInventoryWindow.SetActive(false);
+            equipmentScreenWindow.SetActive(true);
         }
     }
 }

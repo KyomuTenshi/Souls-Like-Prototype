@@ -23,6 +23,9 @@ namespace SG {
         float minimumDistanceNeededToBeginFall = 1f;
         [SerializeField]
         float groundDirectionRayDistance = 0.2f;
+        [Tooltip("Радиус SphereCast под персонажем, м. Меньше радиуса капсулы, чтобы не цеплять стены.")]
+        [SerializeField]
+        float groundCheckRadius = 0.25f;
         LayerMask ignoreForGroundCheck;
         public float inAirTimer;
 
@@ -50,9 +53,12 @@ namespace SG {
         [Tooltip("Дистанция ролла, м")]
         [SerializeField]
         float rollDistance = 4f;
-        [Tooltip("Длительность перемещения, с")]
+        [Tooltip("Длительность перемещения, с. Подбирается под анимацию: персонаж должен двигаться, пока катится.")]
         [SerializeField]
         float rollDuration = 0.6f;
+        [Tooltip("Доля длительности в конце, за которую скорость плавно падает до нуля. 0 — резкая остановка, 1 — торможение с самого начала.")]
+        [SerializeField, Range(0, 1)]
+        float rollSlowDown = 0.5f;
 
         [Header("Backstep")]
         [Tooltip("Дистанция бэкстепа, м")]
@@ -60,18 +66,33 @@ namespace SG {
         float backstepDistance = 1.5f;
         [Tooltip("Длительность перемещения, с")]
         [SerializeField]
-        float backstepDuration = 0.35f;
+        float backstepDuration = 0.5f;
+        [Tooltip("Доля длительности в конце, за которую скорость плавно падает до нуля. 0 — резкая остановка, 1 — торможение с самого начала.")]
+        [SerializeField, Range(0, 1)]
+        float backstepSlowDown = 0.5f;
 
         [Header("Jump")]
-        [Tooltip("Дистанция прыжка вперёд, м")]
+        [Tooltip("Дистанция прыжка вперёд на ровном месте, м")]
         [SerializeField]
         float jumpDistance = 3f;
-        [Tooltip("Высота прыжка, м")]
+        [Tooltip("Высота прыжка, м. Время в воздухе зависит от высоты и гравитации падения: чем выше прыжок, тем он дольше.")]
         [SerializeField]
         float jumpHeight = 1f;
-        [Tooltip("Длительность прыжка, с. Не должна быть больше длины анимации Jump, иначе прыжок оборвётся при выходе в Empty.")]
+
+        [HideInInspector]
+        public bool isJumping; // От отрыва до приземления.
+
+        [Header("Landing")]
+        [Tooltip("Падение дольше этого времени — тяжёлое приземление: управление заблокировано до конца анимации Land, с. Считается только время движения вниз.")]
         [SerializeField]
-        float jumpDuration = 0.7f;
+        float hardLandingFallTime = 0.5f;
+        [Tooltip("Мягкое приземление (обычный прыжок): через сколько секунд движение или ролл прерывают анимацию Land, с")]
+        [SerializeField]
+        float softLandingRecoveryTime = 0.15f;
+
+        bool isSoftLanding;
+        float softLandingTimer;
+        int overrideLayer;
 
         [Header("Sprint Stop")]
         [Tooltip("Тормозной путь, м")]
@@ -97,6 +118,7 @@ namespace SG {
             cameraObject = Camera.main.transform;
             myTransform = transform;
             animatorHandler.Initialize();
+            overrideLayer = animatorHandler.anim.GetLayerIndex("Override");
 
             normalVector = Vector3.up;
             animatorHandler.canRotate = true;
@@ -198,12 +220,12 @@ namespace SG {
                     animatorHandler.PlayTargetAnimation("Rolling", true);
                     Quaternion rollRotation = Quaternion.LookRotation(moveDirection);
                     myTransform.rotation = rollRotation;
-                    StartManualActionMovement(moveDirection, rollDistance, rollDuration, false);
+                    StartManualActionMovement(moveDirection, rollDistance, rollDuration, rollSlowDown);
                 }
                 else
                 {
                     animatorHandler.PlayTargetAnimation("Backstep", true);
-                    StartManualActionMovement(-myTransform.forward, backstepDistance, backstepDuration, false);
+                    StartManualActionMovement(-myTransform.forward, backstepDistance, backstepDuration, backstepSlowDown);
                 }
             }
 
@@ -213,13 +235,14 @@ namespace SG {
 
         public void HandleFalling(float delta, Vector3 moveDirection)
         {
-            // Во время прыжка высоту задаёт ручное движение; проверка земли возобновляется после приземления.
-            if (isJumping)
-                return;
-
             playerManager.isGrounded = false;
             RaycastHit hit;
-            Vector3 origin = myTransform.position;
+
+            // Позиция читается и пишется через Rigidbody, а не Transform (в туториале — myTransform.position):
+            // метод вызывается в FixedUpdate, а при включённой интерполяции Transform хранит сглаженную позицию
+            // с прошлого кадра, и прямую запись в него физика игнорирует — персонаж зависал над землёй в ролле.
+            Vector3 currentPosition = rigidbody.position;
+            Vector3 origin = currentPosition;
             origin.y += groundDetectionRayStartPoint;
 
             // Триггеры игнорируются явно: в проекте включено Queries Hit Triggers, и без этого
@@ -231,18 +254,39 @@ namespace SG {
 
             if (playerManager.isInAir)
             {
+                // Действие закончилось раньше, чем персонаж приземлился (например, ролл с уступа), —
+                // включаем анимацию падения, иначе он летел бы вниз в позе бега.
+                if (!animatorHandler.anim.GetBool("isInteracting"))
+                    animatorHandler.PlayTargetAnimation("Falling", true);
+
                 rigidbody.AddForce(-Vector3.up * fallingSpeed);
-                rigidbody.AddForce(moveDirection * fallingSpeed / 10f);
+
+                // Толчок вперёд помогает сойти с уступа. В прыжке скорость вперёд уже задана,
+                // и толчок сделал бы его длиннее jumpDistance.
+                if (!isJumping)
+                    rigidbody.AddForce(moveDirection * fallingSpeed / 10f);
             }
+
+            // Пока персонаж поднимается в прыжке, землю не ищем: луч достаёт на 0.5 м ниже ног
+            // и нашёл бы её сразу после отрыва — прыжок тут же «приземлился» бы.
+            if (isJumping && rigidbody.linearVelocity.y > 0)
+                return;
 
             Vector3 dir = moveDirection;
             dir.Normalize();
             origin = origin + dir * groundDirectionRayDistance;
 
-            targetPosition = myTransform.position;
+            targetPosition = currentPosition;
+
+            // Луч, смещённый вперёд, на краю уже не попадает в землю, хотя капсула ещё стоит на уступе.
+            // Персонаж считался в воздухе, терял управление и застревал на краю, поэтому дополнительно
+            // проверяем SphereCast из-под самого персонажа (в туториале — только луч).
+            Vector3 sphereOrigin = currentPosition + Vector3.up * groundDetectionRayStartPoint;
+            float sphereDistance = minimumDistanceNeededToBeginFall - groundCheckRadius;
 
             Debug.DrawRay(origin, -Vector3.up * minimumDistanceNeededToBeginFall, Color.red, 0.1f, false);
-            if (Physics.Raycast(origin, -Vector3.up, out hit, minimumDistanceNeededToBeginFall, ignoreForGroundCheck, QueryTriggerInteraction.Ignore))
+            if (Physics.Raycast(origin, -Vector3.up, out hit, minimumDistanceNeededToBeginFall, ignoreForGroundCheck, QueryTriggerInteraction.Ignore)
+                || Physics.SphereCast(sphereOrigin, groundCheckRadius, -Vector3.up, out hit, sphereDistance, ignoreForGroundCheck, QueryTriggerInteraction.Ignore))
             {
                 normalVector = hit.normal;
                 Vector3 tp = hit.point;
@@ -252,19 +296,19 @@ namespace SG {
 
                 if (playerManager.isInAir)
                 {
-                    if (inAirTimer > 0.5f)
-                    {
-                        Debug.Log("You were in the air for " + inAirTimer + " seconds.");
-                        animatorHandler.PlayTargetAnimation("Land", true);
-                        inAirTimer = 0;
-                    }
-                    else
-                    {
-                        animatorHandler.PlayTargetAnimation("Empty", false);
-                        inAirTimer = 0;
-                    }
+                    // Land проигрывается при любом приземлении (в туториале после короткого падения — сразу Empty):
+                    // в состоянии Jump стоит только отталкивание, и без Land прыжок обрывался прямо в бег.
+                    // После короткого падения анимацию можно прервать движением — см. HandleSoftLanding.
+                    animatorHandler.PlayTargetAnimation("Land", true);
+                    isSoftLanding = inAirTimer <= hardLandingFallTime;
+                    softLandingTimer = softLandingRecoveryTime;
 
+                    if (!isSoftLanding)
+                        Debug.Log("You were in the air for " + inAirTimer + " seconds.");
+
+                    inAirTimer = 0;
                     playerManager.isInAir = false;
+                    isJumping = false;
                 }
             }
             else
@@ -294,59 +338,97 @@ namespace SG {
                 }
             }
 
+            // В воздухе targetPosition совпадает с текущей позицией — двигать тело не нужно.
+            if (!playerManager.isGrounded)
+                return;
+
             if (playerManager.isInteracting || inputHandler.moveAmount > 0)
             {
-                myTransform.position = Vector3.Lerp(myTransform.position, targetPosition, Time.deltaTime / 0.1f);
+                currentPosition = Vector3.Lerp(currentPosition, targetPosition, delta / 0.1f);
             }
             else
             {
-                myTransform.position = targetPosition;
+                currentPosition = targetPosition;
             }
 
-            if (playerManager.isGrounded)
-            {
-                if (playerManager.isInteracting || inputHandler.moveAmount > 0)
-                {
-                    myTransform.position = Vector3.Lerp(myTransform.position, targetPosition, Time.deltaTime);
-                }
-                else
-                {
-                    myTransform.position = targetPosition;
-                }
-            }
+            // MovePosition учитывает интерполяцию, в отличие от присваивания rigidbody.position.
+            rigidbody.MovePosition(currentPosition);
         }
 
         public void HandleJumping()
         {
-            if (playerManager.isInteracting)
+            if (playerManager.isInteracting || playerManager.isInAir)
                 return;
 
-            if (inputHandler.jump_Input)
+            if (!inputHandler.jump_Input)
+                return;
+
+            // Без ввода — прыжок на месте (расширение сверх туториала).
+            moveDirection = Vector3.zero;
+
+            if (inputHandler.moveAmount > 0)
             {
-                if (inputHandler.moveAmount > 0)
-                {
-                    moveDirection = cameraObject.forward * inputHandler.vertical;
-                    moveDirection += cameraObject.right * inputHandler.horizontal;
-                    animatorHandler.PlayTargetAnimation("Jump", true);
-                    moveDirection.y = 0;
-                    Quaternion jumpRotation = Quaternion.LookRotation(moveDirection);
-                    myTransform.rotation = jumpRotation;
-                    StartManualActionMovement(moveDirection, jumpDistance, jumpDuration, false, jumpHeight);
-                }
-                else
-                {
-                    // Прыжок на месте — расширение сверх туториала: та же парабола, но без смещения вперёд.
-                    animatorHandler.PlayTargetAnimation("Jump", true);
-                    StartManualActionMovement(myTransform.forward, 0, jumpDuration, false, jumpHeight);
-                }
+                moveDirection = cameraObject.forward * inputHandler.vertical;
+                moveDirection += cameraObject.right * inputHandler.horizontal;
+                moveDirection.y = 0;
+                moveDirection.Normalize();
+                myTransform.rotation = Quaternion.LookRotation(moveDirection);
+            }
+
+            animatorHandler.PlayTargetAnimation("Jump", true);
+
+            // Прыжок задаёт только начальную скорость, дальше персонажа ведёт та же физика, что и при падении.
+            // Раньше вертикаль шла по своей параболе с гравитацией слабее, чем у падения, и ниже точки
+            // прыжка персонаж резко ускорялся вниз, а скорость вперёд обнулялась.
+            float airGravity = Mathf.Abs(Physics.gravity.y) + fallingSpeed / rigidbody.mass;
+            float jumpSpeed = Mathf.Sqrt(2f * airGravity * jumpHeight); // v = √(2gh): с такой скоростью тело поднимется на высоту h.
+            float airTime = 2f * jumpSpeed / airGravity;                  // Подъём и спуск обратно на высоту отрыва.
+
+            rigidbody.linearVelocity = moveDirection * (jumpDistance / airTime) + Vector3.up * jumpSpeed;
+            playerManager.isInAir = true;
+            isJumping = true;
+        }
+
+        // Мягкое приземление: первые softLandingRecoveryTime секунд персонаж приседает, затем движение
+        // или ролл прерывают Land. Без ввода анимация доигрывает до конца сама.
+        // Вызывается до HandleRollingAndSprinting, чтобы ролл сработал в том же кадре, что и прерывание.
+        public void HandleSoftLanding(float delta)
+        {
+            if (!isSoftLanding)
+                return;
+
+            if (softLandingTimer > 0)
+            {
+                softLandingTimer -= delta;
+                return;
+            }
+
+            // Во время перехода смотрим, куда он ведёт: Land уже могла смениться уроном или Empty.
+            Animator anim = animatorHandler.anim;
+            AnimatorStateInfo state = anim.IsInTransition(overrideLayer)
+                ? anim.GetNextAnimatorStateInfo(overrideLayer)
+                : anim.GetCurrentAnimatorStateInfo(overrideLayer);
+
+            if (!state.IsName("Land"))
+            {
+                isSoftLanding = false;
+                return;
+            }
+
+            if (inputHandler.moveAmount > 0 || inputHandler.rollFlag)
+            {
+                animatorHandler.PlayTargetAnimation("Empty", false);
+                isSoftLanding = false;
             }
         }
         #endregion
 
         #region Manual Action Movement
-        // Ручное перемещение для ролла, бэкстепа, торможения и прыжка вместо root motion.
+        // Ручное перемещение для ролла, бэкстепа и торможения вместо root motion.
         // Скорость вычисляется из заданной дистанции и длительности, поэтому
         // пройденный путь не зависит от длины клипа и настроек переходов Animator.
+        // Вертикальная скорость остаётся за физикой: раньше она обнулялась каждый кадр,
+        // гравитация не работала, и ролл с уступа летел по воздуху до конца анимации.
 
         [HideInInspector]
         public bool isDoingManualAction; // Используется в AnimatorHandler.OnAnimatorMove для отключения root motion.
@@ -355,16 +437,10 @@ namespace SG {
         float actionStartSpeed;
         float actionDuration;
         float actionTimer;
-        bool actionSlowsDown;
-        float actionHeight;
+        float actionSlowDownPortion;
 
-        // Прыжок идёт, пока ручное действие с высотой не завершилось.
-        public bool isJumping
-        {
-            get { return isDoingManualAction && actionHeight > 0 && actionTimer < actionDuration; }
-        }
-
-        private void StartManualActionMovement(Vector3 direction, float distance, float duration, bool slowDown, float height = 0f)
+        // slowDownPortion — доля длительности в конце, за которую скорость линейно падает до нуля.
+        private void StartManualActionMovement(Vector3 direction, float distance, float duration, float slowDownPortion)
         {
             isDoingManualAction = useManualRollMovement;
 
@@ -375,13 +451,13 @@ namespace SG {
             actionDirection = direction.normalized;
             actionDuration = Mathf.Max(duration, 0.01f);
             actionTimer = 0;
-            actionSlowsDown = slowDown;
-            actionHeight = height;
+            actionSlowDownPortion = Mathf.Clamp01(slowDownPortion);
 
-            // Равномерное движение: v = d / t. Линейное торможение до нуля: v0 = 2d / t.
-            actionStartSpeed = slowDown ? 2f * distance / actionDuration : distance / actionDuration;
+            // Путь = площадь под графиком скорости: v0 * T * (1 - k / 2), где k — доля торможения.
+            // Отсюда v0 = d / (T * (1 - k / 2)). k = 0 — равномерно (v0 = d / T), k = 1 — тормозим с начала (v0 = 2d / T).
+            actionStartSpeed = distance / (actionDuration * (1f - actionSlowDownPortion / 2f));
 
-            rigidbody.linearVelocity = actionDirection * actionStartSpeed + Vector3.up * GetActionVerticalSpeed();
+            rigidbody.linearVelocity = actionDirection * actionStartSpeed + Vector3.up * rigidbody.linearVelocity.y;
         }
 
         private void HandleManualActionMovement(float delta)
@@ -398,29 +474,20 @@ namespace SG {
             actionTimer += delta;
 
             // Дистанция пройдена: персонаж стоит на месте до завершения анимации.
-            // После прыжка вертикальная скорость сохраняется, чтобы игрок мог упасть, если под ним нет земли.
+            // Вертикальная скорость сохраняется, чтобы игрок мог упасть, если под ним нет земли.
             if (actionTimer >= actionDuration)
             {
-                rigidbody.linearVelocity = actionHeight > 0 ? Vector3.up * rigidbody.linearVelocity.y : Vector3.zero;
+                rigidbody.linearVelocity = Vector3.up * rigidbody.linearVelocity.y;
                 return;
             }
 
             float speed = actionStartSpeed;
+            float slowDownStart = actionDuration * (1f - actionSlowDownPortion);
 
-            if (actionSlowsDown)
-                speed *= 1f - actionTimer / actionDuration;
+            if (actionTimer > slowDownStart)
+                speed *= (actionDuration - actionTimer) / (actionDuration - slowDownStart);
 
-            rigidbody.linearVelocity = actionDirection * speed + Vector3.up * GetActionVerticalSpeed();
-        }
-
-        // Вертикальная скорость по параболе высотой actionHeight: v = 4h / T * (1 - 2t / T).
-        // Для ролла, бэкстепа и торможения высота 0, поэтому они остаются на земле.
-        private float GetActionVerticalSpeed()
-        {
-            if (actionHeight <= 0)
-                return 0;
-
-            return 4f * actionHeight / actionDuration * (1f - 2f * actionTimer / actionDuration);
+            rigidbody.linearVelocity = actionDirection * speed + Vector3.up * rigidbody.linearVelocity.y;
         }
         #endregion
 
@@ -459,7 +526,7 @@ namespace SG {
             {
                 sprintTime = 0;
                 animatorHandler.PlayTargetAnimation("Sprint_Exit", true);
-                StartManualActionMovement(myTransform.forward, sprintStopDistance, sprintStopDuration, true);
+                StartManualActionMovement(myTransform.forward, sprintStopDistance, sprintStopDuration, 1f);
                 return;
             }
 

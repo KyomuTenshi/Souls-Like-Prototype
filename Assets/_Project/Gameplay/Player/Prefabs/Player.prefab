@@ -87,9 +87,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 112
-  m_CollisionDetection: 2
+  m_CollisionDetection: 0
 --- !u!114 &5199175657607408160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -112,6 +112,7 @@ MonoBehaviour:
   rb_Input: 0
   rt_Input: 0
   jump_Input: 0
+  inventory_Input: 0
   d_Pad_Up: 0
   d_Pad_Down: 0
   d_Pad_Left: 0
@@ -119,6 +120,7 @@ MonoBehaviour:
   rollFlag: 0
   sprintFlag: 0
   comboFlag: 0
+  inventoryFlag: 0
   rollInputTimer: 0
   rollTapTime: 0.2
   gamepadCameraSpeed: 220
@@ -149,9 +151,9 @@ MonoBehaviour:
   fallingSpeed: 2
   useManualRollMovement: 1
   rollDistance: 4.5
-  rollDuration: 0.35
+  rollDuration: 0.6
   backstepDistance: 2.2
-  backstepDuration: 0.3
+  backstepDuration: 0.42
   jumpDistance: 4
   jumpHeight: 1.8
   jumpDuration: 0.65
@@ -656,6 +658,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SG.AnimatorHandler
   anim: {fileID: 0}
   canRotate: 1
+  armLayerIdleWeight: 0.8
+  armLayerMoveWeight: 0.35
+  armLayerSprintWeight: 0.15
 --- !u!114 &8667950841474642300
 MonoBehaviour:
   m_ObjectHideFlags: 0
