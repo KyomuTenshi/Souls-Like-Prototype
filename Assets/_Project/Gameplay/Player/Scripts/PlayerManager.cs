@@ -96,6 +96,9 @@ namespace SG {
             inputHandler.a_Input = false;
             inputHandler.jump_Input = false;
             inputHandler.inventory_Input = false;
+            // Сброс, иначе нажатие 1/2 без захвата цели «запоминалось» и срабатывало сразу после захвата.
+            inputHandler.right_Stick_Right_Input = false;
+            inputHandler.right_Stick_Left_Input = false;
 
             // Время в воздухе считается только при движении вниз (в туториале — всё время в воздухе):
             // иначе подъём в прыжке превращал бы обычное приземление в тяжёлое (Land).

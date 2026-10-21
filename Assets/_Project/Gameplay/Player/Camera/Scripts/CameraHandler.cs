@@ -40,6 +40,8 @@ namespace SG {
 
         List<CharacterManager> aviableTargets = new List<CharacterManager>();
         public Transform nearestLockOnTarget;
+        public Transform leftLockOnTarget;
+        public Transform rightLockOnTarget;
         public float maximumLockOnDistance = 30;
 
         private void Awake()
@@ -133,6 +135,15 @@ namespace SG {
         public void HandleLockOn()
         {
             float shortestDistance = Mathf.Infinity;
+            float shortestDistanceOfLeftTarget = Mathf.Infinity;
+            float shortestDistanceOfRightTarget = Mathf.Infinity;
+
+            // Список и цели пересчитываются заново при каждом вызове (в туториале не очищались):
+            // при переключении влево/вправо HandleLockOn вызывается повторно, и без очистки в списке
+            // копились дубликаты и враги, которые уже ушли из радиуса или из поля зрения.
+            aviableTargets.Clear();
+            leftLockOnTarget = null;
+            rightLockOnTarget = null;
 
             Collider[] colliders = Physics.OverlapSphere(targetTransform.position, 26);
 
@@ -163,6 +174,31 @@ namespace SG {
                     shortestDistance = distanceFromTarget;
                     nearestLockOnTarget = aviableTargets[k].lockOnTransform;
                 }
+
+                if (inputHandler.lockOnFlag && currentLockOnTarget != null
+                    && aviableTargets[k].lockOnTransform != currentLockOnTarget)
+                {
+                    // «Лево/право» считается относительно камеры и текущей цели (в туториале — от игрока
+                    // и по мировой оси X): мировой X не зависит от того, куда смотрит камера, поэтому при
+                    // повороте в другую сторону выбор путался, а знаки left/right были перепутаны.
+                    // myTransform камеры вращается только по Y, поэтому его локальный X — горизонталь экрана.
+                    Vector3 relativeEnemyPosition = myTransform.InverseTransformPoint(aviableTargets[k].lockOnTransform.position);
+                    Vector3 relativeCurrentTargetPosition = myTransform.InverseTransformPoint(currentLockOnTarget.position);
+                    var distanceFromLeftTarget = relativeCurrentTargetPosition.x - relativeEnemyPosition.x;
+                    var distanceFromRightTarget = relativeEnemyPosition.x - relativeCurrentTargetPosition.x;
+
+                    if (distanceFromLeftTarget > 0 && distanceFromLeftTarget < shortestDistanceOfLeftTarget)
+                    {
+                        shortestDistanceOfLeftTarget = distanceFromLeftTarget;
+                        leftLockOnTarget = aviableTargets[k].lockOnTransform;
+                    }
+
+                    if (distanceFromRightTarget > 0 && distanceFromRightTarget < shortestDistanceOfRightTarget)
+                    {
+                        shortestDistanceOfRightTarget = distanceFromRightTarget;
+                        rightLockOnTarget = aviableTargets[k].lockOnTransform;
+                    }
+                }
             }
         }
 
@@ -170,6 +206,8 @@ namespace SG {
         {
             aviableTargets.Clear();
             nearestLockOnTarget = null;
+            leftLockOnTarget = null;
+            rightLockOnTarget = null;
             currentLockOnTarget = null;
         }
     }
