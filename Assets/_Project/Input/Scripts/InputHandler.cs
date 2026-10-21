@@ -16,6 +16,7 @@ namespace SG {
         public bool rt_Input;
         public bool jump_Input;
         public bool inventory_Input;
+        public bool lockOnInput;
 
         public bool d_Pad_Up;
         public bool d_Pad_Down;
@@ -25,6 +26,7 @@ namespace SG {
         public bool rollFlag;
         public bool sprintFlag;
         public bool comboFlag;
+        public bool lockOnFlag;
         public bool inventoryFlag;
         public float rollInputTimer;
 
@@ -40,6 +42,7 @@ namespace SG {
         PlayerAttacker playerAttacker;
         PlayerInventory playerInventory;
         PlayerManager playerManager;
+        CameraHandler cameraHandler;
         UIManager uiManager;
 
         Vector2 movementInput;
@@ -53,6 +56,7 @@ namespace SG {
 
             // UIManager висит не на игроке, а на объекте UI (Canvas), поэтому GetComponent вернул бы null.
             uiManager = FindFirstObjectByType<UIManager>();
+            cameraHandler = FindFirstObjectByType<CameraHandler>();
         }
 
         public void OnEnable()
@@ -71,13 +75,16 @@ namespace SG {
 
                 // Подписки делаются один раз здесь (в туториале — в Handle*Input каждый кадр):
                 // каждый += добавлял ещё один обработчик, и их число росло с каждым кадром.
-                inputActions.PlayerActions.RB.performed += i => rb_Input = true;
-                inputActions.PlayerActions.RT.performed += i => rt_Input = true;
+                // Действия названы по смыслу (в туториале — RB и RT, по кнопкам геймпада).
+                // Поля rb_Input/rt_Input оставлены как в туториале.
+                inputActions.PlayerActions.LightAttack.performed += i => rb_Input = true;
+                inputActions.PlayerActions.HeavyAttack.performed += i => rt_Input = true;
+                inputActions.PlayerQuickSlots.DPadRight.performed += i => d_Pad_Right = true;
+                inputActions.PlayerQuickSlots.DPadLeft.performed += i => d_Pad_Left = true;
                 inputActions.PlayerActions.Interactable.performed += i => a_Input = true;
                 inputActions.PlayerActions.Jump.performed += i => jump_Input = true;
                 inputActions.PlayerActions.Inventory.performed += i => inventory_Input = true;
-                inputActions.PlayerQuickSlots.DPadRight.performed += i => d_Pad_Right = true;
-                inputActions.PlayerQuickSlots.DPadLeft.performed += i => d_Pad_Left = true;
+                inputActions.PlayerActions.LockOn.performed += i => lockOnInput = true;
             }
 
             inputActions.Enable();
@@ -95,6 +102,7 @@ namespace SG {
             HandleAttackInput(delta);
             HandleQuickSlotsInput();
             HandleInventoryInput();
+            HandleLockOnInput();
         }
 
         private void MoveInput(float delta)
@@ -198,6 +206,7 @@ namespace SG {
             if (inventory_Input)
             {
                 inventoryFlag = !inventoryFlag;
+                SetGameplayInputEnabled(!inventoryFlag);
 
                 if (uiManager != null)
                 {
@@ -214,6 +223,48 @@ namespace SG {
                         uiManager.hudWindow.SetActive(true);
                     }
                 }
+            }
+        }
+
+        // Пока открыто меню, игровые действия выключены (в туториале ввод не блокируется):
+        // иначе клик ЛКМ по ячейке инвентаря запускал бы атаку, мышь крутила бы камеру,
+        // а D-pad при навигации меню переключал бы оружие.
+        // Inventory остаётся включённым, чтобы меню закрывалось той же кнопкой.
+        private void SetGameplayInputEnabled(bool enabled)
+        {
+            foreach (InputAction action in inputActions)
+            {
+                if (action == inputActions.PlayerActions.Inventory)
+                    continue;
+
+                if (enabled)
+                    action.Enable();
+                else
+                    action.Disable();
+            }
+
+            // Сброс, чтобы удержание Shift в момент открытия меню не превратилось в перекат или спринт.
+            rollInputTimer = 0;
+            sprintFlag = false;
+        }
+
+        private void HandleLockOnInput()
+        {
+            if (lockOnInput && lockOnFlag == false)
+            {
+                lockOnInput = false;
+                cameraHandler.HandleLockOn();
+                if (cameraHandler.nearestLockOnTarget != null)
+                {
+                    cameraHandler.currentLockOnTarget = cameraHandler.nearestLockOnTarget;
+                    lockOnFlag = true;
+                }
+            }
+            else if (lockOnInput && lockOnFlag == true)
+            {
+                lockOnInput = false;
+                lockOnFlag = false;
+                cameraHandler.ClearLockOnTargets();
             }
         }
     }
