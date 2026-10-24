@@ -27,8 +27,14 @@ namespace SG {
 
         private void Start()
         {
-            rightWeapon = unarmedWeapon;
-            leftWeapon = unarmedWeapon;
+            // В туториале просто берётся слот [0]. Здесь индекс тоже ставится в 0 — иначе при -1 первое
+            // нажатие смены оружия снова выберет слот [0] и ничего не поменяет. Пустой слот → без оружия.
+            currentRightWeaponIndex = weaponsInRightHandSlots[0] != null ? 0 : -1;
+            currentLeftWeaponIndex = weaponsInLeftHandSlots[0] != null ? 0 : -1;
+            rightWeapon = weaponsInRightHandSlots[0] != null ? weaponsInRightHandSlots[0] : unarmedWeapon;
+            leftWeapon = weaponsInLeftHandSlots[0] != null ? weaponsInLeftHandSlots[0] : unarmedWeapon;
+            weaponSlotManager.LoadWeaponOnSlot(rightWeapon, false);
+            weaponSlotManager.LoadWeaponOnSlot(leftWeapon, true);
         }
 
         public void ChangeRightWeapon()
@@ -90,34 +96,6 @@ namespace SG {
                 currentLeftWeaponIndex = -1;
                 leftWeapon = unarmedWeapon;
                 weaponSlotManager.LoadWeaponOnSlot(unarmedWeapon, true);
-            }
-        }
-
-        public void EquipWeaponInHandSlot(WeaponItem weapon, bool isLeft, int slotIndex)
-        {
-            WeaponItem[] handSlots = isLeft ? weaponsInLeftHandSlots : weaponsInRightHandSlots;
-            WeaponItem previousWeapon = handSlots[slotIndex];
-
-            weaponInventory.Remove(weapon);
-
-            // В туториале старое оружие добавляется без проверки: пустой слот положил бы в инвентарь null,
-            // и UpdateUI упал бы на item.itemIcon.
-            if (previousWeapon != null)
-                weaponInventory.Add(previousWeapon);
-
-            handSlots[slotIndex] = weapon;
-
-            // Модель меняется, только если этот слот сейчас в руке. При индексе -1 в руке unarmedWeapon
-            // (в туториале здесь weaponsInRightHandSlots[currentRightWeaponIndex] — с -1 это IndexOutOfRange).
-            if (isLeft && currentLeftWeaponIndex == slotIndex)
-            {
-                leftWeapon = weapon;
-                weaponSlotManager.LoadWeaponOnSlot(weapon, true);
-            }
-            else if (!isLeft && currentRightWeaponIndex == slotIndex)
-            {
-                rightWeapon = weapon;
-                weaponSlotManager.LoadWeaponOnSlot(weapon, false);
             }
         }
     }
