@@ -14,12 +14,15 @@ namespace SG {
         Animator animator;
         QuickSlotUI quickSlotUI;
         PlayerStats playerStats;
+        InputHandler inputHandler;
 
         private void Awake()
         {
             animator = GetComponent<Animator>();
             quickSlotUI = FindFirstObjectByType<QuickSlotUI>();
             playerStats = GetComponentInParent<PlayerStats>();
+            // В туториале — FindObjectOfType<InputHandler>(). Берём InputHandler именно этого игрока.
+            inputHandler = GetComponentInParent<InputHandler>();
 
             WeaponHolderSlot[] weaponHolderSlots = GetComponentsInChildren<WeaponHolderSlot>();
             foreach (WeaponHolderSlot weaponSlot in weaponHolderSlots)
@@ -58,22 +61,35 @@ namespace SG {
             }
             else
             {
+                // Модель, коллайдер и UI грузятся в обоих режимах: иначе при смене оружия
+                // в двуручном хвате в руке оставалась бы старая модель со старым коллайдером.
                 rightHandSlot.LoadWeaponModel(weaponItem);
                 LoadRightWeaponDamageCollider();
-                
+
                 if (quickSlotUI != null)
                     quickSlotUI.UpdateWeaponQuickSlotUI(false, weaponItem);
 
-                #region Handle Right Weapon Idle Animations
-                if (weaponItem != null)
+                // Кулаки двумя руками не держат — для них остаётся одноручная поза.
+                if (inputHandler.twoHandFlag && weaponItem != null && !weaponItem.isUnarmed)
                 {
-                    animator.CrossFade(weaponItem.right_hand_idle, 0.2f);
+                    animator.CrossFade(weaponItem.th_idle, 0.2f);
                 }
                 else
                 {
-                    animator.CrossFade("Right Arm Empty", 0.2f);
+                    #region Handle Right Weapon Idle Animations
+                    // Слой Both Arms стоит выше рук и перекрыл бы их, поэтому сначала его очищаем.
+                    animator.CrossFade("Both Arms Empty", 0.2f);
+
+                    if (weaponItem != null)
+                    {
+                        animator.CrossFade(weaponItem.right_hand_idle, 0.2f);
+                    }
+                    else
+                    {
+                        animator.CrossFade("Right Arm Empty", 0.2f);
+                    }
+                    #endregion
                 }
-                #endregion
             }
         }
 
