@@ -7,6 +7,7 @@ namespace SG {
         public Animator anim;
         InputHandler inputHandler;
         PlayerLocomotion playerLocomotion;
+        WeaponSlotManager weaponSlotManager;
         int vertical;
         int horizontal;
         int rightArmLayer;
@@ -29,6 +30,8 @@ namespace SG {
             anim = GetComponent<Animator>();
             inputHandler = GetComponentInParent<InputHandler>();
             playerLocomotion = GetComponentInParent<PlayerLocomotion>();
+            // WeaponSlotManager висит на том же объекте, что и Animator.
+            weaponSlotManager = GetComponent<WeaponSlotManager>();
             vertical = Animator.StringToHash("Vertical");
             horizontal = Animator.StringToHash("Horizontal");
             rightArmLayer = anim.GetLayerIndex("Right Arm");
@@ -118,6 +121,18 @@ namespace SG {
 
         public void PlayTargetAnimation(string targetAnim, bool isInteracting)
         {
+            // Новая анимация отменяет то, что прошлое действие не успело выключить (в туториале этого нет).
+            // Ручное движение: иначе при уроне посреди ролла персонаж докатывался в анимации Damage_01.
+            // Ролл, бэкстеп и торможение включают движение заново сразу после этого вызова.
+            playerLocomotion.isDoingManualAction = false;
+
+            // Окно комбо и коллайдер оружия выключаются событиями в конце клипа атаки. Если атаку прервал
+            // урон, события не срабатывали: меч оставался «включённым» и бил врага при касании,
+            // а canDoCombo = true позволял атаковать посреди ролла или прыжка.
+            anim.SetBool("canDoCombo", false);
+            weaponSlotManager.CloseRightHandDamageCollider();
+            weaponSlotManager.CloseLeftHandDamageCollider();
+
             anim.applyRootMotion = isInteracting;
             anim.SetBool("isInteracting", isInteracting);
             anim.CrossFade(targetAnim, 0.2f);

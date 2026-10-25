@@ -66,6 +66,10 @@ namespace SG {
         public void Start()
         {
             enviromentLayer = LayerMask.NameToLayer("Environment");
+
+            // Без слоя Environment проверка «враг за стеной» в HandleLockOn молча не работает.
+            if (enviromentLayer == -1)
+                Debug.LogWarning("CameraHandler: слой \"Environment\" не найден — захват цели будет видеть врагов сквозь стены.");
         }
 
         public void FollowTarget(float delta)
@@ -114,6 +118,12 @@ namespace SG {
                 // поэтому в localEulerAngles пивота Y обнуляется, иначе поворот по Y применился бы дважды.
                 eulerAngle.y = 0;
                 cameraPivotTransform.localEulerAngles = eulerAngle;
+
+                // Углы свободной камеры подстраиваются под захват (в туториале не обновляются):
+                // иначе после снятия захвата камера рывком возвращалась к направлению, бывшему до него.
+                // DeltaAngle переводит угол из 0..360 в -180..180, чтобы наклон вниз не стал 350°.
+                lookAngle = myTransform.eulerAngles.y;
+                pivotAngle = Mathf.Clamp(Mathf.DeltaAngle(0, eulerAngle.x), minimumPivot, maximumPivot);
             }
         }
 
@@ -153,7 +163,9 @@ namespace SG {
             leftLockOnTarget = null;
             rightLockOnTarget = null;
 
-            Collider[] colliders = Physics.OverlapSphere(targetTransform.position, 26);
+            // Радиус поиска = maximumLockOnDistance (в туториале — число 26): иначе поле в инспекторе
+            // не работало бы при значении больше 26.
+            Collider[] colliders = Physics.OverlapSphere(targetTransform.position, maximumLockOnDistance);
 
             for (int i = 0; i < colliders.Length; i++)
             {
