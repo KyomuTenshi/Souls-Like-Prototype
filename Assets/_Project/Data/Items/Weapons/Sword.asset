@@ -21,10 +21,13 @@ MonoBehaviour:
   th_idle: TH_Idle
   OH_Light_Attack_1: OH_Light_Attack_1
   OH_Heavy_Attack_1: OH_Heavy_Attack_1
+  TH_Regular_Attack_1: TH_Regular_Attack_1
   OH_Light_Attack_2: OH_Light_Attack_2
   OH_Heavy_Attack_2: OH_Heavy_Attack_2
+  TH_Regular_Attack_2: TH_Regular_Attack_2
   OH_Light_Attack_3: OH_Light_Attack_3
   OH_Heavy_Attack_3: OH_Heavy_Attack_3
+  TH_Regular_Attack_3: TH_Regular_Attack_3
   OH_Light_Attack_4: OH_Light_Attack_4
   OH_Heavy_Attack_4: OH_Heavy_Attack_4
   baseStamina: 10

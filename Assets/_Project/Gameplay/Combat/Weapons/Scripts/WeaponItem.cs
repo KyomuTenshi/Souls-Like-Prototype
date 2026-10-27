@@ -17,12 +17,16 @@ namespace SG {
         [Header("Attack Animations")]
         public string OH_Light_Attack_1;
         public string OH_Heavy_Attack_1;
+        public string TH_Regular_Attack_1;
         public string OH_Light_Attack_2;
         public string OH_Heavy_Attack_2;
+        public string TH_Regular_Attack_2;
         public string OH_Light_Attack_3;
         public string OH_Heavy_Attack_3;
+        public string TH_Regular_Attack_3;
         public string OH_Light_Attack_4;
         public string OH_Heavy_Attack_4;
+
 
         [Header("Stamina Costs")]
         public int baseStamina;

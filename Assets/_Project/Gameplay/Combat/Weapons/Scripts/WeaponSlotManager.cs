@@ -5,6 +5,7 @@ namespace SG {
     {
         WeaponHolderSlot leftHandSlot;
         WeaponHolderSlot rightHandSlot;
+        WeaponHolderSlot backSlot;
 
         DamageCollider leftHandDamageCollider;
         DamageCollider rightHandDamageCollider;
@@ -35,6 +36,10 @@ namespace SG {
                 {
                     rightHandSlot = weaponSlot;
                 }
+                else if (weaponSlot.isBackSlot)
+                {
+                    backSlot = weaponSlot;
+                }
             }
         }
 
@@ -42,9 +47,10 @@ namespace SG {
         {
             if (isLeft)
             {
+                leftHandSlot.currentWeapon = weaponItem;
                 leftHandSlot.LoadWeaponModel(weaponItem);
                 LoadLeftWeaponDamageCollider();
-                
+
                 if (quickSlotUI != null)
                     quickSlotUI.UpdateWeaponQuickSlotUI(true, weaponItem);
 
@@ -63,6 +69,7 @@ namespace SG {
             {
                 // Модель, коллайдер и UI грузятся в обоих режимах: иначе при смене оружия
                 // в двуручном хвате в руке оставалась бы старая модель со старым коллайдером.
+                rightHandSlot.currentWeapon = weaponItem;
                 rightHandSlot.LoadWeaponModel(weaponItem);
                 LoadRightWeaponDamageCollider();
 
@@ -72,10 +79,16 @@ namespace SG {
                 // Кулаки двумя руками не держат — для них остаётся одноручная поза.
                 if (inputHandler.twoHandFlag && weaponItem != null && !weaponItem.isUnarmed)
                 {
+                    // Левое оружие уходит за спину; leftHandSlot.currentWeapon не трогаем,
+                    // чтобы при выходе из двуручного хвата вернуть его в руку.
+                    backSlot.LoadWeaponModel(leftHandSlot.currentWeapon);
+                    leftHandSlot.UnloadWeaponAndDestroy();
                     animator.CrossFade(weaponItem.th_idle, 0.2f);
                 }
                 else
                 {
+                    backSlot.UnloadWeaponAndDestroy();
+
                     #region Handle Right Weapon Idle Animations
                     // Слой Both Arms стоит выше рук и перекрыл бы их, поэтому сначала его очищаем.
                     animator.CrossFade("Both Arms Empty", 0.2f);

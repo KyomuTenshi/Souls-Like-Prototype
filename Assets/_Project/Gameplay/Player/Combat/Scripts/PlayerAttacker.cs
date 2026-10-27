@@ -51,6 +51,16 @@ namespace SG {
                     animatorHandler.PlayTargetAnimation(weapon.OH_Heavy_Attack_4, true);
                     lastAttack = weapon.OH_Heavy_Attack_4;
                 }
+                else if (lastAttack == weapon.TH_Regular_Attack_1)
+                {
+                    animatorHandler.PlayTargetAnimation(weapon.TH_Regular_Attack_2, true);
+                    lastAttack = weapon.TH_Regular_Attack_2;
+                }
+                else if (lastAttack == weapon.TH_Regular_Attack_2)
+                {
+                    animatorHandler.PlayTargetAnimation(weapon.TH_Regular_Attack_3, true);
+                    lastAttack = weapon.TH_Regular_Attack_3;
+                }
             }
         }
 
@@ -58,12 +68,27 @@ namespace SG {
         // ставил isInteracting = true, переход в пустое состояние не выполнялся, и персонаж замирал.
         public void HandleLightAttack(WeaponItem weapon)
         {
-            if (weapon == null || string.IsNullOrEmpty(weapon.OH_Light_Attack_1))
+            if (weapon == null)
+                return;
+
+            // В двуручном хвате проверяем двуручную анимацию: её может не быть, даже если одноручная задана.
+            string firstAttack = inputHandler.twoHandFlag ? weapon.TH_Regular_Attack_1 : weapon.OH_Light_Attack_1;
+            if (string.IsNullOrEmpty(firstAttack))
                 return;
 
             weaponSlotManager.attackingWeapon = weapon;
-            animatorHandler.PlayTargetAnimation(weapon.OH_Light_Attack_1, true);
-            lastAttack = weapon.OH_Light_Attack_1;
+
+            if (inputHandler.twoHandFlag)
+            {
+                animatorHandler.PlayTargetAnimation(weapon.TH_Regular_Attack_1, true);
+                lastAttack = weapon.TH_Regular_Attack_1;
+            }
+            else
+            {
+                weaponSlotManager.attackingWeapon = weapon;
+                animatorHandler.PlayTargetAnimation(weapon.OH_Light_Attack_1, true);
+                lastAttack = weapon.OH_Light_Attack_1;
+            }
         }
 
         public void HandleHeavyAttack(WeaponItem weapon)
@@ -72,8 +97,17 @@ namespace SG {
                 return;
 
             weaponSlotManager.attackingWeapon = weapon;
-            animatorHandler.PlayTargetAnimation(weapon.OH_Heavy_Attack_1, true);
-            lastAttack = weapon.OH_Heavy_Attack_1;
+
+            if (inputHandler.twoHandFlag)
+            {
+                
+            }
+            else
+            {
+                weaponSlotManager.attackingWeapon = weapon;
+                animatorHandler.PlayTargetAnimation(weapon.OH_Heavy_Attack_1, true);
+                lastAttack = weapon.OH_Heavy_Attack_1;
+            }
         }
     }
 }
